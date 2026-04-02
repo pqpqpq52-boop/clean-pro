@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CLEAN PRO</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, sans-serif;
+    background:#f1f5f9;
+}
+nav{
+    display:flex;
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:#1e293b;
+}
+nav div{
+    flex:1;
+    text-align:center;
+    padding:12px;
+    color:white;
+    font-size:12px;
+}
+nav div.active{
+    background:#2563eb;
+}
+.page{
+    display:none;
+    padding:15px;
+    padding-bottom:70px;
+}
+.page.active{display:block;}
+
+input,button{
+    width:100%;
+    padding:14px;
+    margin-bottom:10px;
+    font-size:16px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+button{
+    background:#2563eb;
+    color:white;
+    border:none;
+}
+
+.card{
+    background:white;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="p-book" class="page active">
+<h2>予約</h2>
+
+<input id="b-name" placeholder="顧客名">
+<input id="b-date" type="date">
+<input id="b-time" type="time">
+<input id="b-price" type="number" placeholder="金額">
+
+<button onclick="saveB()">保存</button>
+
+<div id="b-list"></div>
+</div>
+
+<div id="p-cust" class="page">
+<h2>顧客</h2>
+<input id="c-name" placeholder="名前">
+<button onclick="saveC()">保存</button>
+<div id="c-list"></div>
+</div>
+
+<div id="p-sale" class="page">
+<h2>売上</h2>
+<div id="s-total"></div>
+</div>
+
+<nav>
+<div onclick="tab('book')" class="active">予約</div>
+<div onclick="tab('cust')">顧客</div>
+<div onclick="tab('sale')">売上</div>
+</nav>
+
+<script>
+const KB="cp_b_v60";
+const KC="cp_c_v60";
+
+let dbB=JSON.parse(localStorage.getItem(KB))||[];
+let dbC=JSON.parse(localStorage.getItem(KC))||[];
+
+function tab(p){
+document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+document.getElementById('p-'+p).classList.add('active');
+}
+
+function getCustByName(name){
+return dbC.find(c=>c.name===name);
+}
+
+function saveC(){
+const name=document.getElementById("c-name").value;
+if(!name)return;
+
+const data={id:Date.now(),name};
+dbC.push(data);
+localStorage.setItem(KC,JSON.stringify(dbC));
+renderC();
+}
+
+function saveB(){
+const name=document.getElementById("b-name").value;
+if(!name)return alert("名前必須");
+
+let cust=getCustByName(name);
+if(!cust){
+cust={id:Date.now(),name};
+dbC.push(cust);
+localStorage.setItem(KC,JSON.stringify(dbC));
+}
+
+const data={
+id:Date.now(),
+customerId:cust.id,
+date:document.getElementById("b-date").value,
+time:document.getElementById("b-time").value,
+price:parseInt(document.getElementById("b-price").value)||0
+};
+
+dbB.push(data);
+localStorage.setItem(KB,JSON.stringify(dbB));
+
+render();
+}
+
+function render(){
+dbB.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+const el=document.getElementById("b-list");
+el.innerHTML="";
+
+dbB.forEach(b=>{
+const c=dbC.find(x=>x.id===b.customerId);
+
+el.innerHTML+=`
+<div class="card">
+<b>${c?c.name:"不明"}</b><br>
+${b.date} ${b.time}<br>
+¥${b.price}
+</div>`;
+});
+
+renderC();
+renderS();
+}
+
+function renderC(){
+const el=document.getElementById("c-list");
+el.innerHTML="";
+dbC.forEach(c=>{
+el.innerHTML+=`<div class="card">${c.name}</div>`;
+});
+}
+
+function renderS(){
+let total=0;
+dbB.forEach(b=>total+=b.price);
+document.getElementById("s-total").innerHTML="合計: ¥"+total.toLocaleString();
+}
+
+render();
+
+// PWA
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
