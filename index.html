@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>CLEAN-PRO v49.0 (Payment Options Updated)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CLEAN-PRO v49.3 (Compatibility Mode)</title>
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #f1f5f9; --white: #ffffff; --border: #e2e8f0; }
         .c-blue { background: #dbeafe !important; color: #1e40af !important; border-left: 4px solid #2563eb !important; }
@@ -28,7 +29,6 @@
         label { display: block; font-size: 12px; font-weight: 600; color: var(--s); margin-bottom: 6px; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; box-sizing: border-box; background: #fff; }
         
-        /* サービス選択の文字サイズ（縮小維持） */
         .svc-checks { border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; background: #fdfdfd; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
         .svc-check-item { display: flex; align-items: center; gap: 6px; padding: 4px 6px; cursor: pointer; font-size: 11.5px; border-radius: 4px; }
         .svc-check-item:hover { background: #f1f5f9; }
@@ -96,7 +96,7 @@
                 <div class="f-item"><label>サービス内容</label><div id="b-svc-area" class="svc-checks"></div></div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div class="f-item"><label>金額(税込)</label><input type="number" id="b-price" placeholder="¥ 0"></div>
-                    <div class="f-item"><label>支払方法 (更新済)</label>
+                    <div class="f-item"><label>支払方法</label>
                         <select id="b-pay">
                             <option value="現金">現金</option>
                             <option value="クレジット決済">クレジット決済</option>
@@ -122,9 +122,9 @@
     <div id="p-cust" class="page">
         <div class="grid">
             <div class="panel">
-                <h2>顧客名簿 <button class="btn-s" style="width:auto; padding:6px 15px; font-size:12px;" onclick="extractCustList()">📋 あいうえお順で抽出</button></h2>
+                <h2>顧客名簿 <button class="btn-s" style="width:auto; padding:6px 15px; font-size:12px;" onclick="extractCustList()">📋 抽出</button></h2>
                 <input type="text" id="c-q" onkeyup="renderC()" placeholder="🔍 検索..." style="margin-bottom:15px;">
-                <div style="max-height:750px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+                <div style="max-height:750px; overflow-y:auto;">
                     <table>
                         <thead>
                             <tr><th onclick="sortC('kana')">氏名(かな) ↕</th><th onclick="sortC('area')">地域 ↕</th><th onclick="sortC('count')">回数 ↕</th><th onclick="sortC('total')">合計 ↕</th><th>操作</th></tr>
@@ -136,8 +136,8 @@
             <div class="panel">
                 <h2 id="cf-title">顧客詳細</h2>
                 <input type="hidden" id="c-id">
-                <div id="c-history" class="history-box" style="display:none; margin-bottom:15px;">
-                    <div style="font-weight:bold; color:var(--p); border-bottom:2px solid var(--p); margin-bottom:8px; display:flex; justify-content:space-between;"><span>📈 利用履歴 (全件)</span><span id="hist-total-count">0回</span></div>
+                <div id="c-history" class="history-box" style="display:none;">
+                    <div style="font-weight:bold; color:var(--p); border-bottom:2px solid var(--p); margin-bottom:8px; display:flex; justify-content:space-between;"><span>📈 利用履歴</span><span id="hist-total-count">0回</span></div>
                     <div id="hist-content" class="hist-scroll"></div>
                 </div>
                 <label>ラベル色</label>
@@ -145,7 +145,7 @@
                     <div class="color-dot c-blue active" data-color="blue" onclick="sc(this)"></div><div class="color-dot c-green" data-color="green" onclick="sc(this)"></div><div class="color-dot c-yellow" data-color="yellow" onclick="sc(this)"></div><div class="color-dot c-red" data-color="red" onclick="sc(this)"></div>
                     <input type="hidden" id="c-color" value="blue">
                 </div>
-                <div class="f-item"><label>名前</label><input type="text" id="c-name" oninput="checkDup(this.value)"><div id="dup-warn" style="color:red; display:none; font-size:11px;">⚠️ 同姓同名あり</div></div>
+                <div class="f-item"><label>名前</label><input type="text" id="c-name" oninput="checkDup(this.value)"><div id="dup-warn" style="color:red; display:none;">⚠️ 同姓同名あり</div></div>
                 <div class="f-item"><label>ふりがな</label><input type="text" id="c-kana"></div>
                 <div class="f-item"><label>メール</label><input type="email" id="c-mail"></div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -153,8 +153,8 @@
                     <div class="f-item"><label>地域</label><input type="text" id="c-area"></div>
                 </div>
                 <div class="f-item"><label>詳細住所</label><input type="text" id="c-addr"><a id="map-link" href="#" target="_blank" class="btn-map" style="display:none;">📍 Googleマップ</a></div>
-                <div class="f-item"><label>備考1 (現場情報)</label><textarea id="c-memo" rows="2"></textarea></div>
-                <div class="f-item"><label>備考2 (注意事項)</label><textarea id="c-memo2" rows="2"></textarea></div>
+                <div class="f-item"><label>備考1</label><textarea id="c-memo" rows="2"></textarea></div>
+                <div class="f-item"><label>備考2</label><textarea id="c-memo2" rows="2"></textarea></div>
                 <button class="btn btn-p" onclick="saveC()">👤 保存</button>
                 <button id="c-del-btn" class="btn btn-d" style="display:none;" onclick="delC()">削除</button>
                 <button class="btn btn-s" onclick="resetC()">クリア</button>
@@ -165,7 +165,7 @@
     <div id="p-sale" class="page">
         <div class="panel" style="background: #1e293b; color: white;">
             <div style="display:flex; justify-content: space-between; align-items:center;">
-                <h1 style="margin:0; font-size:1.5rem;">売上分析ダッシュボード</h1>
+                <h1 style="margin:0; font-size:1.5rem;">売上分析</h1>
                 <div style="display:flex; gap:10px;">
                     <select id="s-year" onchange="renderS()" style="width:120px; color:black;"></select>
                     <select id="s-month" onchange="renderS()" style="width:120px; color:black;">
@@ -178,34 +178,43 @@
             </div>
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px;">
-            <div class="panel"><h2>地域別ランキング</h2><div id="area-stats-list"></div></div>
-            <div class="panel"><h2>サービス別ランキング</h2><div id="svc-stats-list"></div></div>
-            <div class="panel"><h2>月別推移 (年度)</h2><div id="m-stats"></div></div>
+            <div class="panel"><h2>地域別</h2><div id="area-stats-list"></div></div>
+            <div class="panel"><h2>サービス別</h2><div id="svc-stats-list"></div></div>
+            <div class="panel"><h2>月別推移</h2><div id="m-stats"></div></div>
         </div>
-        <div class="panel"><h2>売上明細</h2><div style="max-height:400px; overflow-y:auto;"><table><thead><tr><th>日付</th><th>地域</th><th>顧客名</th><th>支払方法</th><th>金額</th></tr></thead><tbody id="s-list"></tbody></table></div><button class="btn btn-s" onclick="csv()" style="width:auto; margin-top:10px;">CSV出力</button></div>
+        <div class="panel"><h2>売上明細</h2><div style="max-height:400px; overflow-y:auto;"><table><thead><tr><th>日付</th><th>地域</th><th>顧客名</th><th>金額</th></tr></thead><tbody id="s-list"></tbody></table></div><button class="btn btn-s" onclick="csv()" style="width:auto;">CSV出力</button></div>
     </div>
 
     <div id="p-sys" class="page">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
             <div class="panel">
-                <h2>サービス内容マスタ</h2>
-                <div style="display:flex; gap:8px; margin-bottom:15px;"><input type="text" id="new-svc" placeholder="サービス名"><button class="btn btn-p" onclick="addSvc()" style="width:auto; margin:0;">追加</button></div>
+                <h2>サービスマスタ</h2>
+                <div style="display:flex; gap:8px;"><input type="text" id="new-svc"><button class="btn btn-p" onclick="addSvc()" style="width:auto; margin:0;">追加</button></div>
                 <div id="svc-list"></div>
             </div>
             <div class="panel" style="text-align: center;">
                 <h2>データ保守</h2>
-                <button class="btn btn-p" style="background:#059669; height:60px; font-size:18px;" onclick="expD()">📂 全データをバックアップ</button>
-                <div style="margin-top:30px;"><input type="file" id="impF" accept=".json" style="display:none;" onchange="impD(this)"><button class="btn btn-s" onclick="document.getElementById('impF').click()">📤 ファイルから復元</button></div>
+                <button class="btn btn-p" style="background:#059669;" onclick="expD()">📂 全データをバックアップ</button>
+                <div style="margin-top:30px;"><input type="file" id="impF" accept=".json" style="display:none;" onchange="impD(this)"><button class="btn btn-s" onclick="document.getElementById('impF').click()">📤 復元</button></div>
             </div>
         </div>
     </div>
 </main>
 
 <script>
+    // キー設定
     const K_B = 'cp_b_v49', K_C = 'cp_c_v49', K_S = 'cp_s_v49';
-    let dbB = JSON.parse(localStorage.getItem(K_B)) || [];
-    let dbC = JSON.parse(localStorage.getItem(K_C)) || [];
-    let dbS = JSON.parse(localStorage.getItem(K_S)) || ["エアコンクリーニング", "空室清掃", "換気扇掃除"];
+    
+    // データ初期化 (旧キーからの読み込みも考慮)
+    function getDB(key) {
+        try {
+            return JSON.parse(localStorage.getItem(key));
+        } catch(e) { return null; }
+    }
+
+    let dbB = getDB(K_B) || [];
+    let dbC = getDB(K_C) || [];
+    let dbS = getDB(K_S) || ["エアコンクリーニング", "空室清掃", "換気扇掃除"];
     let curSort = { key: 'kana', asc: true };
 
     function tab(p) { document.querySelectorAll('.page, .menu').forEach(x=>x.classList.remove('active')); document.getElementById('p-'+p).classList.add('active'); document.querySelector(`div[onclick="tab('${p}')"]`).classList.add('active'); render(); }
@@ -213,10 +222,10 @@
 
     function renderSvc() {
         document.getElementById('b-svc-area').innerHTML = dbS.map(s=>`<label class="svc-check-item"><input type="checkbox" name="svcs" value="${s}"> ${s}</label>`).join('');
-        document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;"><span>${s}</span><button onclick="delSvc(${i})" style="color:red; border:none; background:none; cursor:pointer;">✖</button></div>`).join('');
+        document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;"><span>${s}</span><button onclick="delSvc(${i})" style="color:red; border:none; background:none;">✖</button></div>`).join('');
     }
     function addSvc() { const v = document.getElementById('new-svc').value; if(v){dbS.push(v); localStorage.setItem(K_S, JSON.stringify(dbS)); document.getElementById('new-svc').value=''; render();}}
-    function delSvc(i) { if(confirm("削除しますか？")){dbS.splice(i,1); localStorage.setItem(K_S, JSON.stringify(dbS)); render();}}
+    function delSvc(i) { if(confirm("削除？")){dbS.splice(i,1); localStorage.setItem(K_S, JSON.stringify(dbS)); render();}}
 
     function saveB() {
         const name = document.getElementById('b-name').value; const date = document.getElementById('b-date').value; if(!name || !date) return alert("名前と日付は必須です");
@@ -227,7 +236,8 @@
     }
 
     function editB(id, e) {
-        if(e) e.stopPropagation(); const i = dbB.find(x=>x.id==id); document.getElementById('b-id').value=i.id; document.getElementById('b-name').value=i.name; 
+        if(e) e.stopPropagation(); const i = dbB.find(x=>x.id==id); if(!i) return;
+        document.getElementById('b-id').value=i.id; document.getElementById('b-name').value=i.name; 
         document.getElementById('b-date').value=i.date; document.getElementById('b-time').value=i.time; document.getElementById('b-price').value=i.price; 
         document.getElementById('b-pay').value=i.pay; document.getElementById('b-park').value=i.park || "無"; document.getElementById('b-note').value=i.note;
         document.querySelectorAll('input[name="svcs"]').forEach(cb => cb.checked = (Array.isArray(i.service)?i.service:[i.service]).includes(cb.value));
@@ -241,12 +251,16 @@
     }
 
     function editC(id) {
-        const i = dbC.find(x=>x.id==id); document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; 
+        const i = dbC.find(x=>x.id==id); if(!i) return;
+        document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; 
         document.getElementById('c-kana').value=i.kana; document.getElementById('c-mail').value=i.mail||''; document.getElementById('c-area').value=i.area;
         document.getElementById('c-addr').value=i.addr; document.getElementById('c-tel').value=i.tel; document.getElementById('c-memo').value=i.memo||''; document.getElementById('c-memo2').value=i.memo2||'';
         const colorEl = document.querySelector(`.color-dot[data-color="${i.color||'blue'}"]`); if(colorEl) sc(colorEl);
         document.getElementById('c-del-btn').style.display='block';
-        if(i.addr){ document.getElementById('map-link').href=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.addr)}`; document.getElementById('map-link').style.display='block'; }
+        if(i.addr){ 
+            document.getElementById('map-link').href=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.addr)}`; 
+            document.getElementById('map-link').style.display='block'; 
+        }
         const hists = dbB.filter(b => b.name === i.name).sort((a,b)=>b.date.localeCompare(a.date));
         const box = document.getElementById('c-history');
         if(hists.length > 0) { box.style.display = 'block'; document.getElementById('hist-total-count').innerText = hists.length + '回'; document.getElementById('hist-content').innerHTML = hists.map(h=>`<div class="hist-item"><span><b>${h.date}</b></span><span>${(Array.isArray(h.service)?h.service.join(','):h.service)}</span><span>¥${h.price.toLocaleString()}</span></div>`).join(''); } else box.style.display = 'none';
@@ -273,7 +287,7 @@
             if(!areaMap[area]) areaMap[area] = 0; areaMap[area] += b.price;
             const svcs = Array.isArray(b.service) ? b.service : [b.service];
             svcs.forEach(s => { if(!svcMap[s]) svcMap[s] = 0; svcMap[s] += b.price; });
-            slist.innerHTML += `<tr><td>${b.date}</td><td>${area}</td><td>${b.name}</td><td>${b.pay}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
+            slist.innerHTML += `<tr><td>${b.date}</td><td>${area}</td><td>${b.name}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
         });
         const drawBar = (target, data) => {
             const sorted = Object.entries(data).sort((a,b)=>b[1]-a[1]);
@@ -283,8 +297,7 @@
         drawBar('area-stats-list', areaMap); drawBar('svc-stats-list', svcMap);
         let mH = ''; for(let m=1; m<=12; m++){ 
             const mStr = String(m).padStart(2,'0'); const mt = dbB.filter(b => b.date.startsWith(`${sy}-${mStr}`)).reduce((s,b)=>s+b.price, 0); 
-            const isActive = sm === mStr ? 'background:#dbeafe; border-radius:4px;' : '';
-            mH += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 4px; ${isActive}"><span>${m}月</span><b>¥${mt.toLocaleString()}</b></div>`; 
+            mH += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 4px;"><span>${m}月</span><b>¥${mt.toLocaleString()}</b></div>`; 
         }
         document.getElementById('m-stats').innerHTML = mH;
     }
@@ -298,7 +311,11 @@
         for(let d=1; d<=last; d++) {
             const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const evs = dbB.filter(b => b.date === ds).sort((a,b)=>a.time.localeCompare(b.time));
-            grid.innerHTML += `<div class="cal-d" onclick="setD('${ds}')"><b>${d}</b>${evs.map(e => { const c = dbC.find(x=>x.name===e.name); return `<div class="ev c-${c?c.color:'blue'}" onclick="editB(${e.id}, event)">${e.time||''} ${e.name}${e.park==='コインパーキング'?'🅿️':''}</div>`; }).join('')}</div>`;
+            grid.innerHTML += `<div class="cal-d" onclick="setD('${ds}')"><b>${d}</b>` + 
+                evs.map(e => { 
+                    const c = dbC.find(x=>x.name===e.name); 
+                    return `<div class="ev c-${c?c.color:'blue'}" onclick="editB(${e.id}, event)">${e.time||''} ${e.name}${e.park==='コインパーキング'?'🅿️':''}</div>`; 
+                }).join('') + `</div>`;
         }
         renderC(); renderS(); renderSvc();
     }
@@ -316,16 +333,48 @@
     function resetC() { document.getElementById('c-id').value=''; document.querySelectorAll('#p-cust input, #p-cust textarea').forEach(i=>i.value=''); document.getElementById('c-del-btn').style.display='none'; document.getElementById('map-link').style.display='none'; document.getElementById('c-history').style.display='none'; }
     function checkDup(v) { document.getElementById('dup-warn').style.display = (v && dbC.some(c=>c.name===v && c.id!=document.getElementById('c-id').value)) ? 'block' : 'none'; }
     function sortC(k) { if(curSort.key===k) curSort.asc=!curSort.asc; else {curSort.key=k; curSort.asc=true;} renderC(); }
-    function expD() { const blob = new Blob([JSON.stringify({b:dbB, c:dbC, s:dbS})], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `CLEAN_PRO_DATA.json`; a.click(); }
-    function impD(f) { const r = new FileReader(); r.onload = (e) => { const d = JSON.parse(e.target.result); dbB=d.b; dbC=d.c; dbS=d.s; localStorage.setItem(K_B, JSON.stringify(dbB)); localStorage.setItem(K_C, JSON.stringify(dbC)); localStorage.setItem(K_S, JSON.stringify(dbS)); location.reload(); }; r.readAsText(f.files[0]); }
+    
+    // バックアップ (JSON作成)
+    function expD() { 
+        const data = {b:dbB, c:dbC, s:dbS};
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `CLEAN_PRO_BACKUP.json`; a.click();
+    }
+
+    // 復元機能 (互換性重視)
+    function impD(f) { 
+        const r = new FileReader(); 
+        r.onload = (e) => { 
+            try {
+                const d = JSON.parse(e.target.result);
+                // 旧形式(v48など)と新形式(v49)の両方に対応
+                const newB = d.b || d.cp_b_v48 || [];
+                const newC = d.c || d.cp_c_v48 || [];
+                const newS = d.s || d.cp_s_v48 || ["エアコンクリーニング", "空室清掃", "換気扇掃除"];
+                
+                if(!confirm("現在のデータが上書きされます。よろしいですか？")) return;
+
+                localStorage.setItem(K_B, JSON.stringify(newB)); 
+                localStorage.setItem(K_C, JSON.stringify(newC)); 
+                localStorage.setItem(K_S, JSON.stringify(newS)); 
+                alert("復元が完了しました。ページを再読み込みします。");
+                location.reload(); 
+            } catch (err) {
+                alert("ファイルの読み込みに失敗しました。ファイルが壊れているか、JSON形式ではありません。");
+            }
+        }; 
+        r.readAsText(f.files[0]); 
+    }
+
     function extractCustList() { 
         const sorted = [...dbC].sort((a, b) => (a.kana || "").localeCompare(b.kana || "", 'ja'));
-        const text = sorted.map(c => `名前: ${c.name} / かな: ${c.kana||'--'} / メール: ${c.mail||'--'} / TEL: ${c.tel||'--'} / 住所: ${c.area||''}${c.addr||''}`).join('\n'); 
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'text/plain'})); a.download = `顧客リスト_あいうえお順.txt`; a.click(); 
+        const text = sorted.map(c => `名前: ${c.name} / かな: ${c.kana||'--'} / TEL: ${c.tel||'--'} / 住所: ${c.area||''}${c.addr||''}`).join('\n'); 
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: 'text/plain'})); a.download = `顧客リスト.txt`; a.click(); 
     }
-    function csv() { let t="\uFEFF日付,地域,顧客名,支払方法,金額\n"+dbB.map(b=>{const c=dbC.find(x=>x.name===b.name); return `${b.date},${c?c.area:''},${b.name},${b.pay},${b.price}`;}).join("\n"); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download='sales.csv'; a.click(); }
-    function delB() { if(confirm("予約を削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); resetB(); render(); } }
-    function delC() { if(confirm("顧客を削除しますか？")){ dbC=dbC.filter(x=>x.id!=document.getElementById('c-id').value); localStorage.setItem(K_C,JSON.stringify(dbC)); resetC(); renderC(); } }
+    function csv() { let t="\uFEFF日付,地域,顧客名,金額\n"+dbB.map(b=>{const c=dbC.find(x=>x.name===b.name); return `${b.date},${c?c.area:''},${b.name},${b.price}`;}).join("\n"); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download='sales.csv'; a.click(); }
+    function delB() { if(confirm("予約を削除？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); resetB(); render(); } }
+    function delC() { if(confirm("顧客を削除？")){ dbC=dbC.filter(x=>x.id!=document.getElementById('c-id').value); localStorage.setItem(K_C,JSON.stringify(dbC)); resetC(); renderC(); } }
 
     const curY = new Date().getFullYear(); const ySel = document.getElementById('calY'); const sySel = document.getElementById('s-year');
     for(let i=2024; i<=2030; i++) { ySel.add(new Option(i+'年', i)); sySel.add(new Option(i+'年度', i)); }
