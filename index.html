@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CLEAN-PRO v52.0</title>
     <style>
-        :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --nav-w: 70px; }
+        :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --accent: #38bdf8; }
+        
+        /* カラーラベル */
         .c-blue { background: #dbeafe !important; color: #1e40af !important; border-left: 5px solid #2563eb !important; }
         .c-green { background: #dcfce7 !important; color: #166534 !important; border-left: 5px solid #22c55e !important; }
         .c-yellow { background: #fef9c3 !important; color: #854d0e !important; border-left: 5px solid #eab308 !important; }
@@ -13,53 +15,56 @@
         
         body { font-family: 'Segoe UI', Meiryo, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* ナビゲーション */
-        nav { width: var(--nav-w); background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 20px; flex-shrink: 0; z-index: 100; }
-        nav .menu { cursor: pointer; text-align: center; font-size: 11px; opacity: 0.5; width: 100%; padding: 10px 0; transition: 0.2s; }
-        nav .menu.active { opacity: 1; color: #38bdf8; background: rgba(255,255,255,0.05); border-right: 3px solid #38bdf8; }
+        /* サイドナビ */
+        nav { width: 70px; background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 20px; flex-shrink: 0; }
+        nav .menu { cursor: pointer; text-align: center; font-size: 10px; opacity: 0.5; width: 100%; padding: 12px 0; transition: 0.2s; }
+        nav .menu.active { opacity: 1; color: var(--accent); background: rgba(255,255,255,0.05); border-right: 3px solid var(--accent); }
         nav .icon { font-size: 24px; display: block; margin-bottom: 4px; }
         
         /* メインコンテンツ */
-        main { flex: 1; height: 100vh; position: relative; overflow: hidden; }
-        .page { display: none; width: 100%; height: 100%; overflow-y: auto; box-sizing: border-box; }
+        main { flex: 1; height: 100vh; overflow: hidden; position: relative; }
+        .page { display: none; width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .page.active { display: block; }
-        .full-container { padding: 10px; width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+        .full-container { padding: 5px; box-sizing: border-box; width: 100%; height: 100%; display: flex; flex-direction: column; }
 
-        /* カレンダー表示 */
-        .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); flex: 1; background: white; border-top: 1px solid var(--border); min-height: 0; overflow-y: auto; }
-        .cal-w { background: #f8fafc; padding: 8px; text-align: center; font-weight: bold; border-right: 1px solid var(--border); border-bottom: 2px solid var(--border); font-size: 13px; position: sticky; top: 0; z-index: 10; }
-        .cal-d { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px; cursor: pointer; min-height: 90px; }
-        .ev { font-size: 11px; padding: 3px 6px; border-radius: 4px; margin-top: 2px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* カレンダー */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-bottom: 1px solid var(--border); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: white; flex: 1; border-top: 1px solid var(--border); min-height: 0; }
+        .cal-w { background: #f8fafc; padding: 8px; text-align: center; font-weight: bold; border-right: 1px solid var(--border); border-bottom: 2px solid var(--border); font-size: 12px; }
+        .cal-d { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px; cursor: pointer; position: relative; min-height: 60px; overflow-y: auto; }
+        .ev { font-size: 10px; padding: 3px 5px; border-radius: 4px; margin-top: 2px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 予約入力オーバーレイ */
-        .form-overlay { position: fixed; top: 0; left: var(--nav-w); right: 0; bottom: 0; background: white; z-index: 1000; display: none; overflow-y: auto; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+        /* 分離フォーム（オーバーレイ） */
+        .form-overlay { position: fixed; top: 0; left: 70px; right: 0; bottom: 0; background: white; z-index: 1000; display: none; overflow-y: auto; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
         .form-overlay.active { display: block; }
+        .form-content { max-width: 800px; margin: 0 auto; padding-bottom: 50px; }
 
-        /* フォーム部品 */
-        .f-item { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 5px; }
-        input, select, textarea { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
-        .svc-checks { border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; background: #f8fafc; }
-        .svc-check-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; }
+        /* 部品 */
+        .f-item { margin-bottom: 15px; position: relative; }
+        label { display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .svc-checks { border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; background: #f8fafc; }
+        .svc-check-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 13px; cursor: pointer; }
         
-        .btn { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn { padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-p { background: var(--p); color: white; }
         .btn-s { background: #f1f5f9; color: var(--s); }
         .btn-d { background: #ef4444; color: white; }
 
-        /* 売上表示・テーブル */
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px; flex-shrink: 0; }
-        .stat-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 15px; }
-        .table-wrap { flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; background: white; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 5; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        /* 売上カード */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+        
+        /* 検索結果 */
+        .search-res { position: absolute; background: white; width: 100%; z-index: 1001; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; display: none; }
+        .search-res div { padding: 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 14px; }
 
-        .search-res { position: absolute; background: white; width: 100%; z-index: 1001; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; display: none; }
-        .search-res div { padding: 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
         .color-dot { width: 22px; height: 22px; border-radius: 50%; display: inline-block; cursor: pointer; border: 3px solid transparent; vertical-align: middle; }
         .color-dot.active { border-color: #334155; transform: scale(1.1); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px; background: #f1f5f9; border-bottom: 2px solid var(--border); font-size: 12px; position: sticky; top: 0; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -75,52 +80,55 @@
     <div id="p-book" class="page active">
         <div class="full-container">
             <div class="cal-header">
-                <div style="display:flex; gap:8px;"><select id="calY" onchange="render()"></select><select id="calM" onchange="render()"></select></div>
-                <h3 id="calLabel" style="margin:0;"></h3>
-                <div style="display:flex; gap:8px;"><button onclick="moveMonth(1)" class="btn-s" style="padding:8px 15px;">次月▶</button><button onclick="openForm()" class="btn-p" style="padding:8px 15px;">＋新規</button></div>
+                <div style="display:flex; gap:5px;"><select id="calY" onchange="render()"></select><select id="calM" onchange="render()"></select></div>
+                <h3 id="calLabel" style="margin:0; font-size:16px;"></h3>
+                <div style="display:flex; gap:8px;"><button onclick="moveMonth(1)" class="btn-s" style="padding:6px 12px;">次月▶</button><button onclick="openForm()" class="btn-p" style="padding:6px 12px;">＋新規</button></div>
             </div>
             <div id="calGrid" class="cal-grid"></div>
         </div>
     </div>
 
     <div id="book-overlay" class="form-overlay">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--p); padding-bottom:10px; margin-bottom:20px;">
-            <h2 style="margin:0;">予約の登録・編集</h2>
-            <span style="font-size:30px; cursor:pointer;" onclick="closeForm()">×</span>
-        </div>
-        <div style="max-width:700px; margin:0 auto;">
+        <div class="form-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--p); padding-bottom:10px; margin-bottom:20px;">
+                <h2 style="margin:0;">予約の登録・編集</h2>
+                <span style="font-size:30px; cursor:pointer;" onclick="closeForm()">×</span>
+            </div>
             <input type="hidden" id="b-id">
             <div class="f-item">
-                <label>顧客名 / 電話番号検索</label>
-                <input type="text" id="b-name" oninput="searchC(this.value)" placeholder="名前で検索..." autocomplete="off">
+                <label>顧客検索（氏名・かな・電話）</label>
+                <input type="text" id="b-name" oninput="searchC(this.value)" placeholder="名前を入力して検索..." autocomplete="off">
                 <div id="b-res" class="search-res"></div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                 <div class="f-item"><label>作業日</label><input type="date" id="b-date"></div>
                 <div class="f-item"><label>開始時間</label><input type="time" id="b-time"></div>
             </div>
-            <div class="f-item"><label>サービス内容 (設定から追加可)</label><div id="b-svc-area" class="svc-checks"></div></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                <div class="f-item"><label>売上(税込)</label><input type="number" id="b-price" placeholder="¥"></div>
-                <div class="f-item"><label>支払方法</label><select id="b-pay"><option>現金</option><option>クレジット決済</option><option>PayPay</option><option>請求書</option><option>後払い</option></select></div>
+            <div class="f-item">
+                <label>サービス内容（設定で追加可能）</label>
+                <div id="b-svc-area" class="svc-checks"></div>
             </div>
-            <div class="f-item"><label>メモ</label><textarea id="b-note" rows="3"></textarea></div>
-            <button class="btn btn-p" onclick="saveB()" style="width:100%; margin-bottom:10px;">💾 保存する</button>
-            <button id="b-del-btn" class="btn btn-d" style="display:none; width:100%; margin-bottom:10px;" onclick="delB()">削除する</button>
-            <button class="btn btn-s" onclick="closeForm()" style="width:100%;">キャンセル</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <div class="f-item"><label>売上金額(税込)</label><input type="number" id="b-price" placeholder="¥"></div>
+                <div class="f-item"><label>支払方法</label><select id="b-pay"><option>現金</option><option>クレジット</option><option>PayPay</option><option>請求書</option></select></div>
+            </div>
+            <div class="f-item"><label>作業メモ</label><textarea id="b-note" rows="3"></textarea></div>
+            <button class="btn btn-p" onclick="saveB()" style="width:100%; margin-bottom:10px;">💾 保存</button>
+            <button id="b-del-btn" class="btn btn-d" style="display:none; width:100%; margin-bottom:10px;" onclick="delB()">予約削除</button>
+            <button class="btn btn-s" onclick="closeForm()" style="width:100%;">戻る</button>
         </div>
     </div>
 
     <div id="p-cust" class="page">
-        <div class="full-container" style="display:grid; grid-template-columns: 1fr 350px; gap:10px;">
-            <div style="background:white; border:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; border-radius:10px;">
-                <div style="padding:10px;"><input type="text" id="c-q" onkeyup="renderC()" placeholder="🔍 名前・電話で顧客を検索..."></div>
-                <div style="flex:1; overflow-y:auto;"><table><thead><tr><th>氏名</th><th>地域</th><th>回数</th><th>操作</th></tr></thead><tbody id="c-list"></tbody></table></div>
+        <div class="full-container" style="display:grid; grid-template-columns:1fr 350px; gap:10px;">
+            <div style="background:white; border:1px solid var(--border); display:flex; flex-direction:column;">
+                <div style="padding:10px; border-bottom:1px solid var(--border);"><input type="text" id="c-q" onkeyup="renderC()" placeholder="🔍 顧客を検索..."></div>
+                <div style="flex:1; overflow-y:auto;"><table><thead><tr><th>氏名</th><th>地域</th><th>操作</th></tr></thead><tbody id="c-list"></tbody></table></div>
             </div>
-            <div style="background:white; padding:15px; border:1px solid var(--border); overflow-y:auto; border-radius:10px;">
-                <h3 style="margin-top:0;">顧客詳細</h3>
+            <div style="background:white; padding:15px; border:1px solid var(--border); overflow-y:auto;">
+                <h3 style="margin-top:0;">顧客詳細設定</h3>
                 <input type="hidden" id="c-id">
-                <div class="f-item"><label>カラーラベル</label>
+                <div class="f-item"><label>色分けラベル</label>
                     <div style="display:flex; gap:10px;">
                         <div class="color-dot c-blue active" data-color="blue" onclick="sc(this)"></div><div class="color-dot c-green" data-color="green" onclick="sc(this)"></div><div class="color-dot c-yellow" data-color="yellow" onclick="sc(this)"></div><div class="color-dot c-red" data-color="red" onclick="sc(this)"></div>
                         <input type="hidden" id="c-color" value="blue">
@@ -128,12 +136,12 @@
                 </div>
                 <div class="f-item"><label>お名前</label><input type="text" id="c-name"></div>
                 <div class="f-item"><label>電話番号</label><input type="tel" id="c-tel"></div>
-                <div class="f-item"><label>メール <span id="mail-link" style="display:none; cursor:pointer;">📧送信</span></label><input type="email" id="c-mail"></div>
-                <div class="f-item"><label>地域 (売上集計用)</label><input type="text" id="c-area" placeholder="例: 岡山市北区"></div>
+                <div class="f-item"><label>メールアドレス <span id="mail-link" style="display:none; cursor:pointer;">📧送信</span></label><input type="email" id="c-mail"></div>
+                <div class="f-item"><label>地域 (売上集計用)</label><input type="text" id="c-area" placeholder="例：北区、南区など"></div>
                 <div class="f-item"><label>住所詳細</label><input type="text" id="c-addr"></div>
-                <div class="f-item"><label>備考</label><textarea id="c-memo" rows="2"></textarea></div>
-                <button class="btn btn-p" onclick="saveC()" style="width:100%;">顧客保存</button>
-                <button class="btn btn-s" onclick="resetC()" style="width:100%; margin-top:10px;">クリア</button>
+                <div class="f-item"><label>備考</label><textarea id="c-memo" rows="3"></textarea></div>
+                <button class="btn btn-p" onclick="saveC()" style="width:100%;">顧客を保存</button>
+                <button class="btn btn-s" onclick="resetC()" style="width:100%; margin-top:10px;">リセット</button>
             </div>
         </div>
     </div>
@@ -141,19 +149,19 @@
     <div id="p-sale" class="page">
         <div class="full-container">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h2 style="margin:0;">売上分析表</h2>
-                <div style="display:flex; gap:8px;"><select id="saleY" onchange="renderSale()"></select><select id="saleM" onchange="renderSale()"></select></div>
+                <h2 style="margin:0;">売上集計・レポート</h2>
+                <div style="display:flex; gap:5px;"><select id="saleY" onchange="renderSale()"></select><select id="saleM" onchange="renderSale()"></select></div>
             </div>
             <div class="stat-grid">
-                <div class="stat-card">月間合計売上<br><b id="total-val" style="font-size:24px; color:var(--p);">¥0</b></div>
-                <div class="stat-card">月間件数<br><b id="total-cnt" style="font-size:24px;">0件</b></div>
+                <div class="stat-card">合計売上<br><b id="total-val" style="font-size:22px; color:var(--p);">¥0</b></div>
+                <div class="stat-card">稼働件数<br><b id="total-cnt" style="font-size:22px;">0件</b></div>
             </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px; margin-bottom:15px;">
-                <div class="stat-card"><b>地域別売上</b><div id="area-stat-list" style="margin-top:10px; font-size:14px; max-height:120px; overflow-y:auto;"></div></div>
-                <div class="stat-card"><b>サービス別売上</b><div id="svc-stat-list" style="margin-top:10px; font-size:14px; max-height:120px; overflow-y:auto;"></div></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div class="stat-card"><b>地域別売上</b><div id="area-stat-list" style="margin-top:8px; font-size:13px;"></div></div>
+                <div class="stat-card"><b>サービス別売上</b><div id="svc-stat-list" style="margin-top:8px; font-size:13px;"></div></div>
             </div>
-            <div class="table-wrap">
-                <table><thead><tr><th>日付</th><th>顧客名</th><th>地域</th><th>内容</th><th>売上</th></tr></thead><tbody id="sale-body"></tbody></table>
+            <div style="background:white; border:1px solid var(--border); border-radius:8px; flex:1; overflow-y:auto;">
+                <table><thead><tr><th>日付</th><th>顧客名</th><th>地域</th><th>内容</th><th>金額</th></tr></thead><tbody id="sale-body"></tbody></table>
             </div>
         </div>
     </div>
@@ -161,15 +169,15 @@
     <div id="p-sys" class="page">
         <div class="full-container" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
             <div style="background:white; padding:20px; border:1px solid var(--border); border-radius:10px;">
-                <h3>サービスマスター設定</h3>
-                <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-svc" placeholder="追加するサービス名"><button class="btn btn-p" onclick="addSvc()" style="width:auto;">追加</button></div>
+                <h3>サービスマスターの編集</h3>
+                <div style="display:flex; gap:10px; margin-bottom:15px;"><input type="text" id="new-svc" placeholder="新しいサービス名"><button class="btn btn-p" onclick="addSvc()" style="width:auto;">追加</button></div>
                 <div id="svc-list" style="border-top:1px solid #eee;"></div>
             </div>
             <div style="background:white; padding:20px; border:1px solid var(--border); border-radius:10px;">
-                <h3>データ管理</h3>
-                <button class="btn btn-p" onclick="expD()" style="width:100%; margin-bottom:10px;">全データをバックアップ(保存)</button>
+                <h3>バックアップ管理</h3>
+                <button class="btn btn-p" onclick="expD()" style="width:100%; margin-bottom:10px;">全データをファイル保存</button>
                 <input type="file" id="impF" style="display:none;" onchange="impD(this)">
-                <button class="btn btn-s" onclick="document.getElementById('impF').click()" style="width:100%;">バックアップを復元</button>
+                <button class="btn btn-s" onclick="document.getElementById('impF').click()" style="width:100%;">ファイルから復元</button>
             </div>
         </div>
     </div>
@@ -179,28 +187,22 @@
     const K_B='cp_b_v52', K_C='cp_c_v52', K_S='cp_s_v52';
     let dbB=JSON.parse(localStorage.getItem(K_B))||[], dbC=JSON.parse(localStorage.getItem(K_C))||[], dbS=JSON.parse(localStorage.getItem(K_S))||["エアコン清掃","空室清掃"];
 
-    function tab(p){ 
-        document.querySelectorAll('.page, .menu').forEach(x=>x.classList.remove('active')); 
-        document.getElementById('p-'+p).classList.add('active'); 
-        document.querySelector(`div[onclick="tab('${p}')"]`).classList.add('active'); 
-        render(); 
-        if(p==='sale') renderSale(); 
-    }
+    function tab(p){ document.querySelectorAll('.page, .menu').forEach(x=>x.classList.remove('active')); document.getElementById('p-'+p).classList.add('active'); document.querySelector(`div[onclick="tab('${p}')"]`).classList.add('active'); if(p==='sale') renderSale(); render(); }
     function openForm(){ document.getElementById('book-overlay').classList.add('active'); }
     function closeForm(){ document.getElementById('book-overlay').classList.remove('active'); resetB(); }
     function sc(el){ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('c-color').value=el.dataset.color; }
 
-    /* 設定: サービス管理 */
+    /* 設定：サービス管理 */
     function renderSvc() {
-        document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><span>${s}</span><button onclick="delSvc(${i})" style="color:red; background:none; border:none; cursor:pointer;">✖削除</button></div>`).join('');
+        document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;"><span>${s}</span><button onclick="delSvc(${i})" style="color:red; background:none; border:none; cursor:pointer;">✖</button></div>`).join('');
         document.getElementById('b-svc-area').innerHTML = dbS.map(s=>`<label class="svc-check-item"><input type="checkbox" name="svcs" value="${s}"> ${s}</label>`).join('');
     }
-    function addSvc(){ const v=document.getElementById('new-svc').value; if(v){dbS.push(v); localStorage.setItem(K_S,JSON.stringify(dbS)); document.getElementById('new-svc').value=''; renderSvc(); render();}}
-    function delSvc(i){ if(confirm("削除しますか？")){dbS.splice(i,1); localStorage.setItem(K_S,JSON.stringify(dbS)); renderSvc(); render();}}
+    function addSvc(){ const v=document.getElementById('new-svc').value; if(v){dbS.push(v); localStorage.setItem(K_S,JSON.stringify(dbS)); document.getElementById('new-svc').value=''; renderSvc();}}
+    function delSvc(i){ if(confirm("削除しますか？")){dbS.splice(i,1); localStorage.setItem(K_S,JSON.stringify(dbS)); renderSvc();}}
 
-    /* カレンダー・予約処理 */
+    /* 予約処理 */
     function saveB(){
-        const name=document.getElementById('b-name').value, date=document.getElementById('b-date').value; if(!name||!date) return alert("氏名と日付は必須です");
+        const name=document.getElementById('b-name').value, date=document.getElementById('b-date').value; if(!name||!date) return alert("必須項目漏れ");
         if(!dbC.some(c=>c.name===name)){ dbC.push({id:Date.now(), name, color:'blue', tel:''}); localStorage.setItem(K_C,JSON.stringify(dbC)); }
         const id=document.getElementById('b-id').value, sel=Array.from(document.querySelectorAll('input[name="svcs"]:checked')).map(cb=>cb.value);
         const data={id:id?parseInt(id):Date.now(), name, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value};
@@ -227,57 +229,54 @@
     /* 顧客管理 */
     function renderC(){
         const q=document.getElementById('c-q').value; let list=dbC.filter(c=>c.name.includes(q)||c.tel?.includes(q));
-        document.getElementById('c-list').innerHTML=list.map(c=>`<tr><td><span class="color-dot c-${c.color||'blue'}"></span> ${c.name}</td><td>${c.area||''}</td><td>${dbB.filter(b=>b.name===c.name).length}</td><td><button onclick="editC(${c.id})">詳細</button></td></tr>`).join('');
+        document.getElementById('c-list').innerHTML=list.map(c=>`<tr><td><span class="color-dot c-${c.color||'blue'}"></span> ${c.name}</td><td>${c.area||''}</td><td><button onclick="editC(${c.id})">詳細</button></td></tr>`).join('');
     }
     function editC(id){
         const i=dbC.find(x=>x.id==id); document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; document.getElementById('c-tel').value=i.tel||''; document.getElementById('c-mail').value=i.mail||''; document.getElementById('c-area').value=i.area||''; document.getElementById('c-addr').value=i.addr||''; document.getElementById('c-memo').value=i.memo||'';
         const dot=document.querySelector(`.color-dot[data-color="${i.color||'blue'}"]`); if(dot) sc(dot);
-        if(i.mail){ document.getElementById('mail-link').style.display='inline'; document.getElementById('mail-link').onclick=()=>location.href=`mailto:${i.mail}`; } else { document.getElementById('mail-link').style.display='none'; }
+        document.getElementById('mail-link').style.display = i.mail ? 'inline' : 'none';
+        if(i.mail) document.getElementById('mail-link').onclick=()=>location.href=`mailto:${i.mail}`;
     }
     function saveC(){
         const id=document.getElementById('c-id').value, data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:document.getElementById('c-name').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
         if(id) dbC[dbC.findIndex(x=>x.id==id)]=data; else dbC.push(data); localStorage.setItem(K_C,JSON.stringify(dbC)); resetC(); renderC(); render();
     }
-    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#p-cust input, #p-cust textarea').forEach(i=>i.value=''); document.getElementById('mail-link').style.display='none'; }
+    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#p-cust input, #p-cust textarea').forEach(i=>i.value=''); }
 
-    /* 売上分析ロジック */
+    /* 売上分析表 */
     function renderSale(){
         const y=document.getElementById('saleY').value, m=String(parseInt(document.getElementById('saleM').value)+1).padStart(2,'0'), target=`${y}-${m}`;
         const filtered = dbB.filter(b => b.date.startsWith(target));
-        let total=0, areaMap={}, svcMap={};
-        
+        let total=0, aMap={}, sMap={};
         document.getElementById('sale-body').innerHTML = filtered.sort((a,b)=>a.date.localeCompare(b.date)).map(b => {
             total += b.price;
-            const c = dbC.find(x=>x.name===b.name) || {};
-            const area = c.area || "未設定";
-            areaMap[area] = (areaMap[area]||0) + b.price;
-            (b.service||[]).forEach(s => svcMap[s] = (svcMap[s]||0) + b.price);
-            return `<tr><td>${b.date}</td><td>${b.name}</td><td>${area}</td><td>${(b.service||[]).join(', ')}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
+            const c = dbC.find(x=>x.name===b.name)||{}; const area = c.area || "未設定";
+            aMap[area] = (aMap[area]||0) + b.price;
+            (b.service||[]).forEach(s => sMap[s] = (sMap[s]||0) + b.price);
+            return `<tr><td>${b.date}</td><td>${b.name}</td><td>${area}</td><td>${(b.service||[]).join(',')}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
         }).join('');
-
         document.getElementById('total-val').innerText = `¥${total.toLocaleString()}`;
         document.getElementById('total-cnt').innerText = `${filtered.length}件`;
-        document.getElementById('area-stat-list').innerHTML = Object.entries(areaMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;"><span>${k}</span><b>¥${v.toLocaleString()}</b></div>`).join('');
-        document.getElementById('svc-stat-list').innerHTML = Object.entries(svcMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;"><span>${k}</span><b>¥${v.toLocaleString()}</b></div>`).join('');
+        document.getElementById('area-stat-list').innerHTML = Object.entries(aMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${k}: ¥${v.toLocaleString()}</div>`).join('');
+        document.getElementById('svc-stat-list').innerHTML = Object.entries(sMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${k}: ¥${v.toLocaleString()}</div>`).join('');
     }
 
-    /* 共通ユーティリティ */
+    /* 検索・移動・保存 */
     function searchC(v){ const res=document.getElementById('b-res'); if(!v){res.style.display='none';return;} const ms=dbC.filter(c=>c.name.includes(v)||c.tel?.includes(v)); res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> ${c.tel||''}</div>`).join(''); res.style.display=ms.length?'block':'none'; }
     function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; }
     function moveMonth(n){ let m=parseInt(document.getElementById('calM').value)+n, y=parseInt(document.getElementById('calY').value); if(m>11){m=0;y++;}else if(m<0){m=11;y--;} document.getElementById('calY').value=y; document.getElementById('calM').value=m; render(); }
-    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v52.json`; a.click(); }
-    function impD(f){ const r=new FileReader(); r.onload=(e)=>{ try{ const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b||[])); localStorage.setItem(K_C,JSON.stringify(d.c||[])); localStorage.setItem(K_S,JSON.stringify(d.s||[])); location.reload(); }catch(err){alert("エラー: バックアップ形式が違います");} }; r.readAsText(f.files[0]); }
-    function delB(){ if(confirm("予約を削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
+    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_DATA.json`; a.click(); }
+    function impD(f){ const r=new FileReader(); r.onload=(e)=>{ try{ const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); }catch(err){alert("エラー");} }; r.readAsText(f.files[0]); }
+    function delB(){ if(confirm("予約削除？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
 
-    /* 初期設定 */
+    /* 初期化 */
     const cy=new Date().getFullYear(), yS=document.getElementById('calY'), syS=document.getElementById('saleY'); 
-    for(let i=2024;i<=2030;i++){ const o=new Option(i+'年',i); yS.add(o); syS.add(o.cloneNode(true)); }
+    for(let i=2024;i<=2030;i++){ const opt=new Option(i+'年',i); yS.add(opt); syS.add(opt.cloneNode(true)); }
     yS.value=cy; syS.value=cy;
-    const mS=document.getElementById('calM'), smS=document.getElementById('saleM'), mO=[...Array(12)].map((_,i)=>`<option value="${i}">${i+1}月</option>`).join('');
-    mS.innerHTML=mO; smS.innerHTML=mO;
-    mS.value=new Date().getMonth(); smS.value=new Date().getMonth();
-    
-    renderSvc(); render();
+    const mS=document.getElementById('calM'), smS=document.getElementById('saleM');
+    const mOpts = [...Array(12)].map((_,i)=>`<option value="${i}">${i+1}月</option>`).join('');
+    mS.innerHTML=mOpts; smS.innerHTML=mOpts; mS.value=new Date().getMonth(); smS.value=new Date().getMonth();
+    render();
 </script>
 </body>
 </html>
