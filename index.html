@@ -3,69 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLEAN-PRO v60.0</title>
+    <title>CLEAN-PRO v63.0</title>
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --accent: #38bdf8; }
-        .c-blue { background: #dbeafe !important; color: #1e40af !important; border-left: 5px solid #2563eb !important; }
-        .c-green { background: #dcfce7 !important; color: #166534 !important; border-left: 5px solid #22c55e !important; }
-        .c-yellow { background: #fef9c3 !important; color: #854d0e !important; border-left: 5px solid #eab308 !important; }
-        .c-red { background: #fee2e2 !important; color: #991b1b !important; border-left: 5px solid #ef4444 !important; }
+        .c-blue { border-left: 5px solid #2563eb !important; }
+        .c-green { border-left: 5px solid #22c55e !important; }
+        .c-yellow { border-left: 5px solid #eab308 !important; }
+        .c-red { border-left: 5px solid #ef4444 !important; }
         
         body { font-family: 'Segoe UI', Meiryo, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         
-        /* サイドナビ */
+        /* ナビゲーション */
         nav { width: 75px; background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; flex-shrink: 0; z-index: 3000; }
-        nav .menu { cursor: pointer; text-align: center; font-size: 11px; opacity: 0.6; width: 100%; padding: 12px 0; border: none; background: none; color: white; }
+        nav .menu { cursor: pointer; text-align: center; font-size: 11px; opacity: 0.6; width: 100%; padding: 12px 0; border: none; background: none; color: white; outline: none; }
         nav .menu.active { opacity: 1; color: var(--accent); background: rgba(255,255,255,0.08); border-right: 4px solid var(--accent); }
         nav .icon { font-size: 26px; display: block; margin-bottom: 4px; }
         
         main { flex: 1; height: 100vh; overflow: hidden; position: relative; }
         .page { display: none; width: 100%; height: 100%; overflow-y: auto; }
         .page.active { display: block; }
-        .full-container { padding: 10px; box-sizing: border-box; width: 100%; height: 100%; display: flex; flex-direction: column; }
+        .full-container { padding: 15px; box-sizing: border-box; width: 100%; height: 100%; display: flex; flex-direction: column; }
         
-        /* カレンダー */
+        /* カレンダー系 */
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: white; flex: 1; border-top: 1px solid var(--border); }
         .cal-w { background: #f8fafc; padding: 10px; text-align: center; font-weight: bold; border-right: 1px solid var(--border); border-bottom: 2px solid var(--border); font-size: 13px; }
-        .cal-d { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 5px; cursor: pointer; min-height: 80px; position: relative; }
-        .ev { font-size: 11px; padding: 4px 6px; border-radius: 5px; margin-top: 3px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .cal-d { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 5px; cursor: pointer; min-height: 85px; position: relative; }
+        .ev { font-size: 11px; padding: 4px 6px; border-radius: 5px; margin-top: 3px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f1f5f9; }
 
-        /* 予約フォーム */
+        /* フォーム系 */
         .form-overlay { position: fixed; top: 0; left: 75px; right: 0; bottom: 0; background: white; z-index: 1500; display: none; overflow-y: auto; padding: 25px; }
         .form-overlay.active { display: block; }
-
-        .f-item { margin-bottom: 15px; position: relative; }
+        .f-item { margin-bottom: 15px; }
         label { display: block; font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 6px; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         
         .svc-row { display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px; }
-        .svc-row input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
-        .svc-label { flex: 1; font-size: 15px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .svc-price-hint { font-size: 12px; color: #64748b; margin-left: 8px; }
-        .qty-input { width: 80px !important; padding: 8px !important; text-align: center; }
+        .svc-label { flex: 1; font-size: 15px; font-weight: 600; }
 
-        .btn { padding: 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        /* ボタン */
+        .btn { padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-p { background: var(--p); color: white; }
         .btn-s { background: #f1f5f9; color: var(--s); }
         .btn-d { background: #ef4444; color: white; }
-        .btn-mini { padding: 4px 8px; font-size: 12px; border-radius: 4px; }
-        
+        .btn-mini { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+        /* テーブル */
+        .table-wrap { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: auto; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { text-align: left; padding: 12px; background: #f1f5f9; border-bottom: 2px solid var(--border); font-size: 13px; cursor: pointer; white-space: nowrap; user-select: none; }
+        td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .link-text { color: var(--p); text-decoration: underline; cursor: pointer; font-weight: bold; }
+
         .search-res { position: absolute; background: white; width: 100%; z-index: 1600; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 200px; overflow-y: auto; display: none; }
         .search-res div { padding: 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
-        .color-dot { width: 26px; height: 26px; border-radius: 50%; display: inline-block; cursor: pointer; border: 3px solid transparent; vertical-align: middle; }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; display: inline-block; cursor: pointer; border: 3px solid transparent; vertical-align: middle; }
         .color-dot.active { border-color: #334155; transform: scale(1.1); }
-
-        .table-wrap { background: white; border: 1px solid var(--border); border-radius: 12px; flex: 1; overflow: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 12px; background: #f1f5f9; border-bottom: 2px solid var(--border); font-size: 13px; position: sticky; top: 0; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; white-space: nowrap; }
-        .stat-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
     </style>
 </head>
 <body>
 
-<nav>
+<nav id="sidebar">
     <button class="menu active" id="tab-book" onclick="tab('book')"><span class="icon">📅</span>予定</button>
     <button class="menu" id="tab-cust" onclick="tab('cust')"><span class="icon">👤</span>顧客</button>
     <button class="menu" id="tab-sale" onclick="tab('sale')"><span class="icon">📈</span>売上</button>
@@ -91,37 +89,54 @@
                 <span style="font-size:35px; cursor:pointer;" onclick="closeForm()">×</span>
             </div>
             <input type="hidden" id="b-id">
-            <div class="f-item"><label>顧客検索</label><input type="text" id="b-name" oninput="searchC(this.value)" placeholder="名前・電話番号で検索..." autocomplete="off"><div id="b-res" class="search-res"></div></div>
+            <div class="f-item"><label>顧客検索 (氏名・ふりがな・電話)</label><input type="text" id="b-name" oninput="searchC(this.value)" placeholder="検索..." autocomplete="off"><div id="b-res" class="search-res"></div></div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div class="f-item"><label>作業日</label><input type="date" id="b-date"></div>
                 <div class="f-item"><label>開始時間</label><input type="time" id="b-time"></div>
             </div>
             <div class="f-item"><label>サービスと数量</label><div id="b-svc-area" style="max-height: 250px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px; background:#fff;"></div></div>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; background:#f1f5f9; padding:15px; border-radius:10px;">
-                <div class="f-item"><label>小計(自動)</label><input type="text" id="b-subtotal" readonly style="background:#e2e8f0;"></div>
-                <div class="f-item"><label>割引額</label><input type="number" id="b-discount" oninput="calcTotal()" placeholder="0"></div>
-                <div class="f-item"><label>最終合計金額</label><input type="number" id="b-price" placeholder="¥ 0" style="border-color:var(--p); font-weight:bold;"></div>
+                <div class="f-item"><label>小計</label><input type="text" id="b-subtotal" readonly style="background:#e2e8f0;"></div>
+                <div class="f-item"><label>割引</label><input type="number" id="b-discount" oninput="calcTotal()" placeholder="0"></div>
+                <div class="f-item"><label>合計</label><input type="number" id="b-price" style="border-color:var(--p); font-weight:bold;"></div>
             </div>
             <div class="f-item"><label>支払方法</label>
                 <select id="b-pay">
-                    <option>現金</option><option>オンライン</option><option>クレジット</option>
-                    <option>PayPay</option><option>請求書</option><option>後払い</option><option>その他</option>
+                    <option>現金</option><option>オンライン</option><option>クレジット</option><option>PayPay</option><option>請求書</option><option>後払い</option><option>その他</option>
                 </select>
             </div>
             <div class="f-item"><label>メモ</label><textarea id="b-note" rows="3"></textarea></div>
             <button class="btn btn-p" onclick="saveB()" style="width:100%; margin-bottom:15px;">💾 予約を保存</button>
-            <button id="b-del-btn" class="btn btn-d" style="display:none; width:100%; margin-bottom:15px;" onclick="delB()">削除</button>
+            <button id="b-del-btn" class="btn btn-d" style="display:none; width:100%;" onclick="delB()">削除</button>
         </div>
     </div>
 
     <div id="p-cust" class="page">
-        <div class="full-container" style="display:grid; grid-template-columns:1fr 380px; gap:15px;">
-            <div style="background:white; border:1px solid var(--border); display:flex; flex-direction:column; border-radius:12px; overflow:hidden;">
-                <div style="padding:15px; border-bottom:1px solid var(--border);"><input type="text" id="c-q" onkeyup="renderC()" placeholder="🔍 顧客検索..."></div>
-                <div style="flex:1; overflow-y:auto;"><table><thead><tr><th>氏名</th><th>地域</th><th>操作</th></tr></thead><tbody id="c-list"></tbody></table></div>
+        <div id="cust-list-screen" class="full-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2>顧客管理</h2>
+                <button class="btn btn-p btn-mini" onclick="viewCDetail(null)">＋新規顧客</button>
             </div>
-            <div style="background:white; padding:20px; border:1px solid var(--border); border-radius:12px; overflow-y:auto;">
-                <h3>顧客詳細</h3>
+            <div style="margin-bottom:15px;"><input type="text" id="c-q" onkeyup="renderC()" placeholder="🔍 名前・ふりがな・電話で検索..."></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="setSortC('kana')" style="width:40%;">氏名 (ふりがな) <span id="sort-icon-kana"></span></th>
+                            <th onclick="setSortC('count')" style="width:20%;">回数 <span id="sort-icon-count"></span></th>
+                            <th onclick="setSortC('area')" style="width:40%;">地域 <span id="sort-icon-area"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="c-list-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="cust-detail-screen" class="full-container" style="display:none; background:white;">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px; border-bottom:2px solid var(--border); padding-bottom:10px;">
+                <button class="btn btn-s btn-mini" onclick="backToList()">◀ 戻る</button>
+                <h2 id="c-detail-title" style="margin:0;">顧客詳細</h2>
+            </div>
+            <div style="max-width:600px;">
                 <input type="hidden" id="c-id">
                 <div class="f-item"><label>色分け</label>
                     <div style="display:flex; gap:12px;">
@@ -129,13 +144,16 @@
                         <input type="hidden" id="c-color" value="blue">
                     </div>
                 </div>
-                <div class="f-item"><label>お名前</label><input type="text" id="c-name"></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="f-item"><label>お名前</label><input type="text" id="c-name"></div>
+                    <div class="f-item"><label>ふりがな</label><input type="text" id="c-kana"></div>
+                </div>
                 <div class="f-item"><label>電話番号</label><input type="tel" id="c-tel"></div>
                 <div class="f-item"><label>メール <span id="mail-link" style="display:none; cursor:pointer; color:var(--p);">📧</span></label><input type="email" id="c-mail"></div>
                 <div class="f-item"><label>地域</label><input type="text" id="c-area"></div>
-                <div class="f-item"><label>住所 <span id="map-link" style="display:none; cursor:pointer; color:var(--p);">🗺️マップ</span></label><input type="text" id="c-addr"></div>
-                <div class="f-item"><label>備考</label><textarea id="c-memo" rows="3"></textarea></div>
-                <button class="btn btn-p" onclick="saveC()" style="width:100%;">保存</button>
+                <div class="f-item"><label>住所 <span id="map-link" style="display:none; cursor:pointer; color:var(--p);">🗺️</span></label><input type="text" id="c-addr"></div>
+                <div class="f-item"><label>備考</label><textarea id="c-memo" rows="4"></textarea></div>
+                <button class="btn btn-p" onclick="saveC()" style="width:100%;">💾 顧客情報を保存</button>
             </div>
         </div>
     </div>
@@ -147,20 +165,16 @@
                 <div style="display:flex; gap:8px;"><select id="saleY" onchange="renderSale()"></select><select id="saleM" onchange="renderSale()"></select></div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                <div class="stat-card">売上合計: <b id="total-val" style="font-size:24px; color:var(--p);">¥0</b></div>
-                <div class="stat-card">件数: <b id="total-cnt" style="font-size:24px;">0件</b></div>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:15px;">売上合計: <b id="total-val" style="font-size:24px; color:var(--p);">¥0</b></div>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:15px;">件数: <b id="total-cnt" style="font-size:24px;">0件</b></div>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                <div class="stat-card"><b>地域別</b><div id="area-stat-list" style="font-size:14px; margin-top:10px;"></div></div>
-                <div class="stat-card"><b>内容別</b><div id="svc-stat-list" style="font-size:14px; margin-top:10px;"></div></div>
-            </div>
-            <div class="table-wrap"><table><thead><tr><th>日付</th><th>顧客名</th><th>地域</th><th>内容</th><th>金額</th></tr></thead><tbody id="sale-body"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>日付</th><th>顧客名</th><th>内容</th><th>金額</th></tr></thead><tbody id="sale-body"></tbody></table></div>
         </div>
     </div>
 
     <div id="p-sys" class="page">
         <div class="full-container" style="display:grid; grid-template-columns:1fr 1fr; gap:25px;">
-            <div style="background:white; padding:25px; border:1px solid var(--border); border-radius:15px;">
+            <div style="background:white; padding:20px; border:1px solid var(--border); border-radius:15px;">
                 <h3 id="svc-form-title">サービス登録・修正</h3>
                 <input type="hidden" id="edit-svc-idx">
                 <div style="display:grid; grid-template-columns:1fr 100px 70px; gap:8px; margin-bottom:20px;">
@@ -170,9 +184,9 @@
                 </div>
                 <div id="svc-list"></div>
             </div>
-            <div style="background:white; padding:25px; border:1px solid var(--border); border-radius:15px;">
+            <div style="background:white; padding:20px; border:1px solid var(--border); border-radius:15px;">
                 <h3>データ管理</h3>
-                <button class="btn btn-p" onclick="expD()" style="width:100%; margin-bottom:15px;">データをJSONで保存</button>
+                <button class="btn btn-p" onclick="expD()" style="width:100%; margin-bottom:15px;">データを保存(JSON)</button>
                 <input type="file" id="impF" style="display:none;" onchange="impD(this)">
                 <button class="btn btn-s" onclick="document.getElementById('impF').click()" style="width:100%;">バックアップから復元</button>
             </div>
@@ -181,13 +195,13 @@
 </main>
 
 <script>
-    const K_B='cp_b_v60', K_C='cp_c_v60', K_S='cp_s_v60';
+    const K_B='cp_b_v63', K_C='cp_c_v63', K_S='cp_s_v63';
     let dbB=JSON.parse(localStorage.getItem(K_B))||[], dbC=JSON.parse(localStorage.getItem(K_C))||[];
-    let rawS=JSON.parse(localStorage.getItem(K_S))||["エアコン清掃","空室清掃"];
-    let dbS=rawS.map(s => typeof s === 'string' ? {name:s, price:0} : s);
+    let dbS=JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
+    let sortC = { key: 'kana', asc: true };
 
     function tab(p){
-        closeForm(); resetC();
+        closeForm(); backToList();
         document.querySelectorAll('.page, .menu').forEach(x=>x.classList.remove('active'));
         document.getElementById('p-'+p).classList.add('active');
         document.getElementById('tab-'+p).classList.add('active');
@@ -201,16 +215,27 @@
 
     function renderSvc() {
         document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
                 <span><b>${s.name}</b> <small>(¥${(s.price||0).toLocaleString()})</small></span>
-                <div style="display:flex; gap:5px;"><button class="btn-s btn-mini" onclick="editSvc(${i})">編集</button><button class="btn-d btn-mini" onclick="delSvc(${i})">✖</button></div>
+                <div style="display:flex; gap:4px;">
+                    <button class="btn-s btn-mini" onclick="moveSvc(${i},-1)">↑</button>
+                    <button class="btn-s btn-mini" onclick="moveSvc(${i},1)">↓</button>
+                    <button class="btn-s btn-mini" onclick="editSvc(${i})">修</button>
+                    <button class="btn-d btn-mini" onclick="delSvc(${i})">×</button>
+                </div>
             </div>`).join('');
         document.getElementById('b-svc-area').innerHTML = dbS.map(s=>`
             <div class="svc-row">
-                <input type="checkbox" name="svcs" value="${s.name}" id="chk-${s.name}" data-price="${s.price}" onchange="calcTotal()">
-                <label for="chk-${s.name}" class="svc-label">${s.name}<span class="svc-price-hint">¥${(s.price||0).toLocaleString()}</span></label>
-                <input type="number" name="qty-${s.name}" value="1" min="1" class="qty-input" oninput="calcTotal()">
+                <input type="checkbox" name="svcs" value="${s.name}" id="chk-${s.name}" data-price="${s.price}" onchange="calcTotal()" style="width:22px;height:22px;">
+                <label for="chk-${s.name}" class="svc-label">${s.name} <small>¥${(s.price||0).toLocaleString()}</small></label>
+                <input type="number" name="qty-${s.name}" value="1" min="1" style="width:60px;padding:5px;text-align:center;" oninput="calcTotal()">
             </div>`).join('');
+    }
+
+    function moveSvc(i, dir) {
+        const target = i + dir; if(target < 0 || target >= dbS.length) return;
+        const temp = dbS[i]; dbS[i] = dbS[target]; dbS[target] = temp;
+        localStorage.setItem(K_S, JSON.stringify(dbS)); renderSvc();
     }
 
     function addSvc(){ 
@@ -221,7 +246,7 @@
     }
     function editSvc(i){
         const s=dbS[i]; document.getElementById('new-svc').value=s.name; document.getElementById('new-price').value=s.price;
-        document.getElementById('edit-svc-idx').value=i; document.getElementById('svc-form-title').innerText="サービスを修正中...";
+        document.getElementById('edit-svc-idx').value=i; document.getElementById('svc-form-title').innerText="サービス修正中...";
         document.getElementById('svc-save-btn').innerText="更新";
     }
     function resetSvcForm(){ document.getElementById('new-svc').value=''; document.getElementById('new-price').value=''; document.getElementById('edit-svc-idx').value=''; document.getElementById('svc-form-title').innerText="サービス登録・修正"; document.getElementById('svc-save-btn').innerText="追加"; }
@@ -238,7 +263,7 @@
 
     function saveB(){
         const name=document.getElementById('b-name').value, date=document.getElementById('b-date').value; if(!name||!date) return alert("氏名と日付は必須です");
-        if(!dbC.some(c=>c.name===name)){ dbC.push({id:Date.now(), name, color:'blue', tel:''}); localStorage.setItem(K_C,JSON.stringify(dbC)); }
+        if(!dbC.some(c=>c.name===name)){ dbC.push({id:Date.now(), name, kana:'', color:'blue', tel:''}); localStorage.setItem(K_C,JSON.stringify(dbC)); }
         const id=document.getElementById('b-id').value, sel=[];
         document.querySelectorAll('input[name="svcs"]:checked').forEach(cb => sel.push({ name: cb.value, qty: parseInt(document.querySelector(`input[name="qty-${cb.value}"]`).value) }));
         const data={id:id?parseInt(id):Date.now(), name, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, discount:parseInt(document.getElementById('b-discount').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value};
@@ -276,13 +301,50 @@
     function setD(d){ resetB(); document.getElementById('b-date').value=d; openForm(); }
     function resetB(){ document.getElementById('b-id').value=''; document.querySelectorAll('#book-overlay input:not([type="checkbox"]), #book-overlay textarea').forEach(i=>i.value=''); document.querySelectorAll('input[name="svcs"]').forEach(cb=>cb.checked=false); document.getElementById('b-subtotal').value=''; document.getElementById('b-del-btn').style.display='none'; }
 
+    function setSortC(key) { if(sortC.key===key) sortC.asc=!sortC.asc; else {sortC.key=key; sortC.asc=true;} renderC(); }
+    
     function renderC(){
-        const q=document.getElementById('c-q').value; let list=dbC.filter(c=>c.name.includes(q)||c.tel?.includes(q));
-        document.getElementById('c-list').innerHTML=list.map(c=>`<tr><td><span class="color-dot c-${c.color||'blue'}"></span> ${c.name}</td><td>${c.area||''}</td><td><button onclick="editC(${c.id})">詳細</button></td></tr>`).join('');
+        const q=document.getElementById('c-q').value; 
+        let list=dbC.filter(c=>c.name.includes(q)||(c.kana||'').includes(q)||c.tel?.includes(q));
+        
+        // 利用回数の計算（リアルタイム復旧）
+        list.forEach(c => {
+            c._count = dbB.filter(b => b.name === c.name).length;
+        });
+
+        list.sort((a,b) => {
+            let vA, vB;
+            if(sortC.key === 'kana') {
+                vA = a.kana || a.name || 'ー'; vB = b.kana || b.name || 'ー';
+            } else if(sortC.key === 'count') {
+                vA = a._count; vB = b._count;
+            } else {
+                vA = a[sortC.key] || 'ー'; vB = b[sortC.key] || 'ー';
+            }
+            if(vA === vB) return 0;
+            return sortC.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+        });
+
+        ['kana','count','area'].forEach(k => {
+            const el = document.getElementById('sort-icon-'+k);
+            if(el) el.innerText = sortC.key===k ? (sortC.asc?'▲':'▼') : '';
+        });
+
+        document.getElementById('c-list-body').innerHTML=list.map(c=>`
+            <tr>
+                <td><span class="link-text" onclick="viewCDetail(${c.id})">${c.name}</span><br><small style="color:#64748b;">${c.kana||''}</small></td>
+                <td>${c._count}回</td>
+                <td>${c.area||''}</td>
+            </tr>`).join('');
     }
 
-    function editC(id){
-        const i=dbC.find(x=>x.id==id); document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; document.getElementById('c-tel').value=i.tel||''; document.getElementById('c-mail').value=i.mail||''; document.getElementById('c-area').value=i.area||''; document.getElementById('c-addr').value=i.addr||''; document.getElementById('c-memo').value=i.memo||'';
+    function viewCDetail(id) {
+        document.getElementById('cust-list-screen').style.display='none';
+        document.getElementById('cust-detail-screen').style.display='block';
+        if(!id) { resetC(); document.getElementById('c-detail-title').innerText="新規顧客登録"; return; }
+        const i=dbC.find(x=>x.id==id);
+        document.getElementById('c-detail-title').innerText=i.name + " 様";
+        document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; document.getElementById('c-kana').value=i.kana||''; document.getElementById('c-tel').value=i.tel||''; document.getElementById('c-mail').value=i.mail||''; document.getElementById('c-area').value=i.area||''; document.getElementById('c-addr').value=i.addr||''; document.getElementById('c-memo').value=i.memo||'';
         const dot=document.querySelector(`.color-dot[data-color="${i.color||'blue'}"]`); if(dot) sc(dot);
         document.getElementById('mail-link').style.display = i.mail ? 'inline' : 'none';
         if(i.mail) document.getElementById('mail-link').onclick=()=>location.href=`mailto:${i.mail}`;
@@ -290,33 +352,33 @@
         if(i.addr) document.getElementById('map-link').onclick=()=>window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.addr)}`, '_blank');
     }
 
+    function backToList(){ document.getElementById('cust-list-screen').style.display='block'; document.getElementById('cust-detail-screen').style.display='none'; }
+
     function saveC(){
-        const id=document.getElementById('c-id').value, data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:document.getElementById('c-name').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
-        if(id) dbC[dbC.findIndex(x=>x.id==id)]=data; else dbC.push(data); localStorage.setItem(K_C,JSON.stringify(dbC)); resetC(); renderC(); render();
+        const id=document.getElementById('c-id').value, data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:document.getElementById('c-name').value, kana:document.getElementById('c-kana').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
+        if(!data.name) return alert("お名前は必須です");
+        if(id) dbC[dbC.findIndex(x=>x.id==id)]=data; else dbC.push(data); localStorage.setItem(K_C,JSON.stringify(dbC)); backToList(); renderC(); render();
     }
-    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#p-cust input, #p-cust textarea').forEach(i=>i.value=''); document.getElementById('mail-link').style.display='none'; document.getElementById('map-link').style.display='none'; }
+    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen textarea').forEach(i=>i.value=''); document.getElementById('mail-link').style.display='none'; document.getElementById('map-link').style.display='none'; }
 
     function renderSale(){
         const y=document.getElementById('saleY').value, m=String(parseInt(document.getElementById('saleM').value)+1).padStart(2,'0'), target=`${y}-${m}`, filtered=dbB.filter(b=>b.date.startsWith(target));
-        let total=0, aMap={}, sMap={};
+        let total=0;
         document.getElementById('sale-body').innerHTML=filtered.sort((a,b)=>a.date.localeCompare(b.date)).map(b=>{
-            total+=b.price; const c=dbC.find(x=>x.name===b.name)||{}, area=c.area||"未設定"; aMap[area]=(aMap[area]||0)+b.price; 
-            const txt=(Array.isArray(b.service)?b.service:[]).map(s=>{ const n=typeof s==='string'?s:s.name, q=typeof s==='string'?1:s.qty; if(b.service.length>0) sMap[n]=(sMap[n]||0)+(b.price/b.service.length); return `${n}(${q})`; }).join(', ');
-            return `<tr><td>${b.date}</td><td>${b.name}</td><td>${area}</td><td>${txt}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
+            total+=b.price;
+            const txt=(Array.isArray(b.service)?b.service:[]).map(s=>`${typeof s==='string'?s:s.name}(${typeof s==='string'?1:s.qty})`).join(', ');
+            return `<tr><td>${b.date}</td><td>${b.name}</td><td>${txt}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
         }).join('');
         document.getElementById('total-val').innerText=`¥${total.toLocaleString()}`; document.getElementById('total-cnt').innerText=`${filtered.length}件`;
-        document.getElementById('area-stat-list').innerHTML=Object.entries(aMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${k}: ¥${v.toLocaleString()}</div>`).join('');
-        document.getElementById('svc-stat-list').innerHTML=Object.entries(sMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div>${k}: ¥${v.toLocaleString()}</div>`).join('');
     }
 
-    function searchC(v){ const res=document.getElementById('b-res'); if(!v){res.style.display='none';return;} const ms=dbC.filter(c=>c.name.includes(v)||c.tel?.includes(v)); res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> ${c.tel||''}</div>`).join(''); res.style.display=ms.length?'block':'none'; }
+    function searchC(v){ const res=document.getElementById('b-res'); if(!v){res.style.display='none';return;} const ms=dbC.filter(c=>c.name.includes(v)||(c.kana||'').includes(v)||c.tel?.includes(v)); res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> <small>${c.kana||''}</small></div>`).join(''); res.style.display=ms.length?'block':'none'; }
     function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; }
     function moveMonth(n){ let m=parseInt(document.getElementById('calM').value)+n, y=parseInt(document.getElementById('calY').value); if(m>11){m=0;y++;}else if(m<0){m=11;y--;} document.getElementById('calY').value=y; document.getElementById('calM').value=m; render(); }
-    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v60_BACKUP.json`; a.click(); }
+    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v63.json`; a.click(); }
     function impD(f){ const r=new FileReader(); r.onload=(e)=>{ const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); }; r.readAsText(f.files[0]); }
-    function delB(){ if(confirm("削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
+    function delB(){ if(confirm("予約を削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
 
-    // 初期化：2020年〜2035年に対応
     const cy=new Date().getFullYear(), yS=document.getElementById('calY'), syS=document.getElementById('saleY'); 
     for(let i=2020; i<=2035; i++){ const opt=new Option(i+'年',i); yS.add(opt); syS.add(opt.cloneNode(true)); }
     yS.value=cy; syS.value=cy;
