@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLEAN-PRO v68.0</title>
+    <title>CLEAN-PRO v69.0</title>
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --accent: #38bdf8; }
         .c-blue { border-left: 5px solid #2563eb !important; }
@@ -33,7 +33,6 @@
         .today-mark { display: inline-block; width: 24px; height: 24px; background: var(--p); color: white; border-radius: 50%; text-align: center; line-height: 24px; }
         .ev { font-size: 11px; padding: 4px 6px; border-radius: 5px; margin-top: 3px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f1f5f9; }
 
-        /* 警告メッセージ */
         .dup-warn { color: #ef4444; font-size: 12px; font-weight: bold; margin-top: 4px; display: none; }
 
         /* フォーム */
@@ -52,7 +51,6 @@
         .btn-d { background: #ef4444; color: white; }
         .btn-mini { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
 
-        /* テーブル */
         .table-wrap { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: auto; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { text-align: left; padding: 12px; background: #f1f5f9; border-bottom: 2px solid var(--border); font-size: 12px; cursor: pointer; white-space: nowrap; }
@@ -160,7 +158,10 @@
                     <div class="f-item"><label>電話番号</label><input type="tel" id="c-tel"></div>
                     <div class="f-item"><label>メールアドレス <span id="mail-link" style="display:none; cursor:pointer; color:var(--p);">📧</span></label><input type="email" id="c-mail"></div>
                     <div class="f-item"><label>地域 (市町村など)</label><input type="text" id="c-area"></div>
-                    <div class="f-item"><label>住所</label><input type="text" id="c-addr"></div>
+                    <div class="f-item">
+                        <label>住所 <span id="map-link" style="cursor:pointer; color:var(--p); font-size:16px;" onclick="openMap()">🗺️</span></label>
+                        <input type="text" id="c-addr" placeholder="住所を入力...">
+                    </div>
                     <div class="f-item"><label>備考</label><textarea id="c-memo" rows="3"></textarea></div>
                     <button class="btn btn-p" onclick="saveC()" style="width:100%;">💾 顧客情報を保存</button>
                 </div>
@@ -217,7 +218,7 @@
 </main>
 
 <script>
-    const K_B='cp_b_v68', K_C='cp_c_v68', K_S='cp_s_v68';
+    const K_B='cp_b_v69', K_C='cp_c_v69', K_S='cp_s_v69';
     let dbB=JSON.parse(localStorage.getItem(K_B))||[], dbC=JSON.parse(localStorage.getItem(K_C))||[];
     let dbS=JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
     let sortC = { key: 'kana', asc: true };
@@ -235,6 +236,8 @@
     function openForm(){ document.getElementById('book-overlay').classList.add('active'); }
     function closeForm(){ document.getElementById('book-overlay').classList.remove('active'); resetB(); }
     function sc(el){ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('c-color').value=el.dataset.color; }
+
+    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
 
     function renderSvc() {
         document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`
@@ -280,7 +283,6 @@
         document.getElementById('b-subtotal').value="¥ "+sub.toLocaleString(); document.getElementById('b-price').value=sub-d;
     }
 
-    // 重複チェック表示ロジック
     function checkDupC(v){
         const warn = document.getElementById('c-dup-warn');
         const selfId = document.getElementById('c-id').value;
@@ -395,7 +397,7 @@
     }
     function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; document.getElementById('b-dup-warn').style.display='block'; }
     function moveMonth(n){ let m=parseInt(document.getElementById('calM').value)+n, y=parseInt(document.getElementById('calY').value); if(m>11){m=0;y++;}else if(m<0){m=11;y--;} document.getElementById('calY').value=y; document.getElementById('calM').value=m; render(); }
-    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v68.json`; a.click(); }
+    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v69.json`; a.click(); }
     function impD(f){ const r=new FileReader(); r.onload=(e)=>{ const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); }; r.readAsText(f.files[0]); }
     function delB(){ if(confirm("予約を削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
 
