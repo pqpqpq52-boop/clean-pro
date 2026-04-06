@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLEAN-PRO v69.0</title>
+    <title>CLEAN-PRO v70.0</title>
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --accent: #38bdf8; }
         .c-blue { border-left: 5px solid #2563eb !important; }
@@ -189,10 +189,13 @@
                 <div class="stat-card">年間合計: <b id="year-total-val" style="font-size:20px; color:#22c55e;">¥0</b></div>
                 <div class="stat-card">月間件数: <b id="total-cnt" style="font-size:20px;">0件</b></div>
             </div>
-            <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:15px;">
+            <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:15px;">
                 <div class="table-wrap"><h4 style="padding:10px;margin:0;">月間明細</h4><table><thead><tr><th>日付</th><th>顧客名</th><th>内容</th><th>金額</th></tr></thead><tbody id="sale-body"></tbody></table></div>
-                <div class="table-wrap"><h4 style="padding:10px;margin:0;">地域別 (月間)</h4><table><thead><tr><th>地域</th><th>件数</th></tr></thead><tbody id="area-stat-body"></tbody></table></div>
-                <div class="table-wrap"><h4 style="padding:10px;margin:0;">サービス別 (月間)</h4><table><thead><tr><th>名称</th><th>回数</th></tr></thead><tbody id="svc-stat-body"></tbody></table></div>
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <div class="table-wrap"><h4 style="padding:10px;margin:0;">支払い方法別 (月間)</h4><table><thead><tr><th>方法</th><th>件数</th><th>合計金額</th></tr></thead><tbody id="pay-stat-body"></tbody></table></div>
+                    <div class="table-wrap"><h4 style="padding:10px;margin:0;">地域別 (月間)</h4><table><thead><tr><th>地域</th><th>件数</th></tr></thead><tbody id="area-stat-body"></tbody></table></div>
+                    <div class="table-wrap"><h4 style="padding:10px;margin:0;">サービス別 (月間)</h4><table><thead><tr><th>名称</th><th>回数</th></tr></thead><tbody id="svc-stat-body"></tbody></table></div>
+                </div>
             </div>
         </div>
     </div>
@@ -223,6 +226,24 @@
     let dbS=JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
     let sortC = { key: 'kana', asc: true };
 
+    // 初期化処理
+    window.onload = () => {
+        const now = new Date();
+        const yEl = document.getElementById('calY'), mEl = document.getElementById('calM');
+        const syEl = document.getElementById('saleY'), smEl = document.getElementById('saleM');
+        for(let i=now.getFullYear()-2; i<=now.getFullYear()+3; i++) {
+            yEl.innerHTML += `<option value="${i}">${i}年</option>`;
+            syEl.innerHTML += `<option value="${i}">${i}年</option>`;
+        }
+        for(let i=0; i<12; i++) {
+            mEl.innerHTML += `<option value="${i}">${i+1}月</option>`;
+            smEl.innerHTML += `<option value="${i}">${i+1}月</option>`;
+        }
+        yEl.value = now.getFullYear(); mEl.value = now.getMonth();
+        syEl.value = now.getFullYear(); smEl.value = now.getMonth();
+        render();
+    };
+
     function tab(p){
         closeForm(); backToList();
         document.querySelectorAll('.page, .menu').forEach(x=>x.classList.remove('active'));
@@ -237,7 +258,7 @@
     function closeForm(){ document.getElementById('book-overlay').classList.remove('active'); resetB(); }
     function sc(el){ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('c-color').value=el.dataset.color; }
 
-    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
+    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
 
     function renderSvc() {
         document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`
@@ -297,8 +318,21 @@
         const id=document.getElementById('b-id').value, sel=[];
         document.querySelectorAll('input[name="svcs"]:checked').forEach(cb => sel.push({ name: cb.value, qty: parseInt(document.querySelector(`input[name="qty-${cb.value}"]`).value) }));
         const data={id:id?parseInt(id):Date.now(), name, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, discount:parseInt(document.getElementById('b-discount').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value, park:document.getElementById('b-park').value};
-        if(id) dbB[dbB.findIndex(x=>x.id==id)]=data; else dbB.push(data);
+        if(id) {
+            const idx = dbB.findIndex(x=>x.id==id);
+            if(idx !== -1) dbB[idx] = data;
+        } else {
+            dbB.push(data);
+        }
         localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render();
+    }
+
+    function delB(){
+        const id = document.getElementById('b-id').value;
+        if(id && confirm("この予約を削除しますか？")){
+            dbB = dbB.filter(x => x.id != id);
+            localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render();
+        }
     }
 
     function editB(id,e){
@@ -314,6 +348,7 @@
 
     function render(){
         const y=parseInt(document.getElementById('calY').value), m=parseInt(document.getElementById('calM').value);
+        if(isNaN(y) || isNaN(m)) return;
         const today = new Date(); const tStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
         document.getElementById('calLabel').innerText=`${y}年 ${m+1}月`;
         const grid=document.getElementById('calGrid'); grid.innerHTML='日月火水木金土'.split('').map(w=>`<div class="cal-w">${w}</div>`).join('');
@@ -325,7 +360,8 @@
             const evs=dbB.filter(b=>b.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
             grid.innerHTML+=`<div class="cal-d" onclick="setD('${ds}')"><b class="${isToday?'today-mark':''}">${d}</b>` + evs.map(e=>{ 
                 const c=dbC.find(x=>x.name===e.name);
-                return `<div class="ev c-${c?c.color:'blue'}" onclick="editB(${e.id},event)">${e.time||''} ${e.name}</div>`
+                // カレンダー表示に支払い方法を追加
+                return `<div class="ev c-${c?c.color:'blue'}" onclick="editB(${e.id},event)">${e.time||''} ${e.name}<br><small style="opacity:0.8;">[${e.pay||'未入力'}]</small></div>`
             }).join('') + `</div>`;
         }
         renderC(); renderSvc();
@@ -364,24 +400,43 @@
     function saveC(){
         const id=document.getElementById('c-id').value, data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:document.getElementById('c-name').value, kana:document.getElementById('c-kana').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
         if(!data.name) return alert("お名前は必須です");
-        if(id) dbC[dbC.findIndex(x=>x.id==id)]=data; else dbC.push(data); localStorage.setItem(K_C,JSON.stringify(dbC)); backToList(); renderC(); render();
+        if(id) {
+            const idx = dbC.findIndex(x=>x.id==id);
+            if(idx !== -1) dbC[idx] = data;
+        } else {
+            dbC.push(data);
+        }
+        localStorage.setItem(K_C,JSON.stringify(dbC)); backToList(); renderC(); render();
     }
     function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen textarea').forEach(i=>i.value=''); document.getElementById('c-history-body').innerHTML=''; document.getElementById('mail-link').style.display='none'; document.getElementById('c-dup-warn').style.display='none';}
 
     function renderSale(){
         const y=document.getElementById('saleY').value, m=String(parseInt(document.getElementById('saleM').value)+1).padStart(2,'0'), target=`${y}-${m}`;
         const filtered=dbB.filter(b=>b.date.startsWith(target)), yearFiltered=dbB.filter(b=>b.date.startsWith(y));
-        let total=0, yearTotal=0, areaMap={}, svcMap={};
+        let total=0, yearTotal=0, areaMap={}, svcMap={}, payMap={};
+        
         yearFiltered.forEach(b => yearTotal += b.price);
+        
         document.getElementById('sale-body').innerHTML=filtered.sort((a,b)=>a.date.localeCompare(b.date)).map(b=>{
             total+=b.price; const c=dbC.find(x=>x.name===b.name); const area=c?c.area||'不明':'不明';
             areaMap[area] = (areaMap[area]||0) + 1;
             b.service.forEach(s => svcMap[s.name] = (svcMap[s.name]||0) + s.qty);
+            
+            // 支払い方法別の集計
+            const payType = b.pay || "未入力";
+            if(!payMap[payType]) payMap[payType] = { count: 0, amount: 0 };
+            payMap[payType].count++;
+            payMap[payType].amount += b.price;
+
             return `<tr><td>${b.date.split('-')[2]}日</td><td>${b.name}</td><td>${b.service.map(s=>s.name).join(',')}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
         }).join('');
+
         document.getElementById('total-val').innerText=`¥${total.toLocaleString()}`;
         document.getElementById('year-total-val').innerText=`¥${yearTotal.toLocaleString()}`;
         document.getElementById('total-cnt').innerText=`${filtered.length}件`;
+        
+        // 各種集計表示
+        document.getElementById('pay-stat-body').innerHTML = Object.entries(payMap).map(([k,v])=>`<tr><td>${k}</td><td>${v.count}件</td><td>¥${v.amount.toLocaleString()}</td></tr>`).join('');
         document.getElementById('area-stat-body').innerHTML = Object.entries(areaMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}件</td></tr>`).join('');
         document.getElementById('svc-stat-body').innerHTML = Object.entries(svcMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}回</td></tr>`).join('');
     }
@@ -390,23 +445,15 @@
         const res=document.getElementById('b-res');
         const warn=document.getElementById('b-dup-warn');
         if(!v){res.style.display='none'; warn.style.display='none'; return;} 
-        const ms=dbC.filter(c=>c.name.includes(v)||(c.kana||'').includes(v)||c.tel?.includes(v));
+        const ms=dbC.filter(c=>c.name.includes(v)||(c.kana||'').includes(v)||(c.tel&&c.tel.includes(v)));
         res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> <small>${c.kana||''}</small></div>`).join('');
         res.style.display=ms.length?'block':'none';
         warn.style.display = dbC.some(c => c.name === v) ? 'block' : 'none';
     }
     function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; document.getElementById('b-dup-warn').style.display='block'; }
     function moveMonth(n){ let m=parseInt(document.getElementById('calM').value)+n, y=parseInt(document.getElementById('calY').value); if(m>11){m=0;y++;}else if(m<0){m=11;y--;} document.getElementById('calY').value=y; document.getElementById('calM').value=m; render(); }
-    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v69.json`; a.click(); }
-    function impD(f){ const r=new FileReader(); r.onload=(e)=>{ const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); }; r.readAsText(f.files[0]); }
-    function delB(){ if(confirm("予約を削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
-
-    const cy=new Date().getFullYear(), yS=document.getElementById('calY'), syS=document.getElementById('saleY'); 
-    for(let i=2020; i<=2035; i++){ const opt=new Option(i+'年',i); yS.add(opt); syS.add(opt.cloneNode(true)); }
-    yS.value=cy; syS.value=cy;
-    const mS=document.getElementById('calM'), smS=document.getElementById('saleM'), mOpts=[...Array(12)].map((_,i)=>`<option value="${i}">${i+1}月</option>`).join('');
-    mS.innerHTML=mOpts; smS.innerHTML=mOpts; mS.value=new Date().getMonth(); smS.value=new Date().getMonth();
-    render();
+    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v70.json`; a.click(); }
+    function impD(f){ const r=new FileReader(); r.onload=(e)=>{ try { const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); } catch(err){alert("ファイル形式が正しくありません");} }; r.readAsText(f.files[0]); }
 </script>
 </body>
 </html>
