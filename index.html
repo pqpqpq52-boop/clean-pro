@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CLEAN-PRO v65.0</title>
+    <title>CLEAN-PRO v68.0</title>
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --accent: #38bdf8; }
         .c-blue { border-left: 5px solid #2563eb !important; }
@@ -33,6 +33,9 @@
         .today-mark { display: inline-block; width: 24px; height: 24px; background: var(--p); color: white; border-radius: 50%; text-align: center; line-height: 24px; }
         .ev { font-size: 11px; padding: 4px 6px; border-radius: 5px; margin-top: 3px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f1f5f9; }
 
+        /* 警告メッセージ */
+        .dup-warn { color: #ef4444; font-size: 12px; font-weight: bold; margin-top: 4px; display: none; }
+
         /* フォーム */
         .form-overlay { position: fixed; top: 0; left: 75px; right: 0; bottom: 0; background: white; z-index: 1500; display: none; overflow-y: auto; padding: 25px; }
         .form-overlay.active { display: block; }
@@ -61,6 +64,8 @@
         .color-dot { width: 24px; height: 24px; border-radius: 50%; display: inline-block; cursor: pointer; border: 3px solid transparent; vertical-align: middle; }
         .color-dot.active { border-color: #334155; transform: scale(1.1); }
         .stat-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+        .svc-item { cursor: pointer; transition: background 0.2s; }
+        .svc-item:hover { background: #f1f5f9; }
     </style>
 </head>
 <body>
@@ -91,7 +96,12 @@
                 <span style="font-size:35px; cursor:pointer;" onclick="closeForm()">×</span>
             </div>
             <input type="hidden" id="b-id">
-            <div class="f-item"><label>顧客検索</label><input type="text" id="b-name" oninput="searchC(this.value)" placeholder="氏名・ふりがな・電話..." autocomplete="off"><div id="b-res" class="search-res"></div></div>
+            <div class="f-item">
+                <label>顧客検索</label>
+                <input type="text" id="b-name" oninput="searchC(this.value)" placeholder="氏名・ふりがな・電話..." autocomplete="off">
+                <div id="b-dup-warn" class="dup-warn">⚠️ すでに登録されている顧客名です</div>
+                <div id="b-res" class="search-res"></div>
+            </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div class="f-item"><label>作業日</label><input type="date" id="b-date"></div>
                 <div class="f-item"><label>開始時間</label><input type="time" id="b-time"></div>
@@ -139,7 +149,14 @@
                 <div>
                     <input type="hidden" id="c-id">
                     <div class="f-item"><label>色分け</label><div style="display:flex; gap:12px;"><div class="color-dot c-blue active" data-color="blue" onclick="sc(this)"></div><div class="color-dot c-green" data-color="green" onclick="sc(this)"></div><div class="color-dot c-yellow" data-color="yellow" onclick="sc(this)"></div><div class="color-dot c-red" data-color="red" onclick="sc(this)"></div><input type="hidden" id="c-color" value="blue"></div></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;"><div class="f-item"><label>お名前</label><input type="text" id="c-name"></div><div class="f-item"><label>ふりがな</label><input type="text" id="c-kana"></div></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        <div class="f-item">
+                            <label>お名前</label>
+                            <input type="text" id="c-name" oninput="checkDupC(this.value)">
+                            <div id="c-dup-warn" class="dup-warn">⚠️ すでに登録されている顧客名です</div>
+                        </div>
+                        <div class="f-item"><label>ふりがな</label><input type="text" id="c-kana"></div>
+                    </div>
                     <div class="f-item"><label>電話番号</label><input type="tel" id="c-tel"></div>
                     <div class="f-item"><label>メールアドレス <span id="mail-link" style="display:none; cursor:pointer; color:var(--p);">📧</span></label><input type="email" id="c-mail"></div>
                     <div class="f-item"><label>地域 (市町村など)</label><input type="text" id="c-area"></div>
@@ -182,9 +199,10 @@
     <div id="p-sys" class="page">
         <div class="full-container" style="display:grid; grid-template-columns:1fr 1fr; gap:25px;">
             <div class="stat-card">
-                <h3>サービス登録</h3>
+                <h3 id="svc-form-title">サービス登録・修正</h3>
+                <input type="hidden" id="edit-svc-idx" value="-1">
                 <div style="display:grid; grid-template-columns:1fr 100px 70px; gap:8px; margin-bottom:20px;">
-                    <input type="text" id="new-svc" placeholder="サービス名"><input type="number" id="new-price" placeholder="単価"><button class="btn btn-p" onclick="addSvc()" style="padding:8px;">追加</button>
+                    <input type="text" id="new-svc" placeholder="サービス名"><input type="number" id="new-price" placeholder="単価"><button class="btn btn-p" id="svc-save-btn" onclick="addSvc()" style="padding:8px;">追加</button>
                 </div>
                 <div id="svc-list"></div>
             </div>
@@ -199,7 +217,7 @@
 </main>
 
 <script>
-    const K_B='cp_b_v65', K_C='cp_c_v65', K_S='cp_s_v65';
+    const K_B='cp_b_v68', K_C='cp_c_v68', K_S='cp_s_v68';
     let dbB=JSON.parse(localStorage.getItem(K_B))||[], dbC=JSON.parse(localStorage.getItem(K_C))||[];
     let dbS=JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
     let sortC = { key: 'kana', asc: true };
@@ -210,6 +228,7 @@
         document.getElementById('p-'+p).classList.add('active');
         document.getElementById('tab-'+p).classList.add('active');
         if(p==='sale') renderSale();
+        if(p==='sys') resetSvcForm();
         render();
     }
 
@@ -219,9 +238,13 @@
 
     function renderSvc() {
         document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+            <div class="svc-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;" onclick="editSvc(${i})">
                 <span><b>${s.name}</b> <small>(¥${(s.price||0).toLocaleString()})</small></span>
-                <div style="display:flex; gap:4px;"><button class="btn-s btn-mini" onclick="moveSvc(${i},-1)">↑</button><button class="btn-s btn-mini" onclick="moveSvc(${i},1)">↓</button><button class="btn-d btn-mini" onclick="delSvc(${i})">×</button></div>
+                <div style="display:flex; gap:4px;" onclick="event.stopPropagation()">
+                    <button class="btn-s btn-mini" onclick="moveSvc(${i},-1)">↑</button>
+                    <button class="btn-s btn-mini" onclick="moveSvc(${i},1)">↓</button>
+                    <button class="btn-d btn-mini" onclick="delSvc(${i})">×</button>
+                </div>
             </div>`).join('');
         document.getElementById('b-svc-area').innerHTML = dbS.map(s=>`
             <div class="svc-row">
@@ -231,9 +254,22 @@
             </div>`).join('');
     }
 
+    function addSvc(){
+        const n=document.getElementById('new-svc').value, p=parseInt(document.getElementById('new-price').value)||0, idx=parseInt(document.getElementById('edit-svc-idx').value);
+        if(!n) return;
+        if(idx === -1) dbS.push({name:n,price:p}); else dbS[idx] = {name:n, price:p};
+        localStorage.setItem(K_S,JSON.stringify(dbS)); resetSvcForm(); renderSvc();
+    }
+    function editSvc(i){
+        document.getElementById('new-svc').value=dbS[i].name; document.getElementById('new-price').value=dbS[i].price;
+        document.getElementById('edit-svc-idx').value=i; document.getElementById('svc-save-btn').innerText='保存'; document.getElementById('svc-form-title').innerText='サービスを修正中...';
+    }
+    function resetSvcForm(){
+        document.getElementById('new-svc').value=''; document.getElementById('new-price').value='';
+        document.getElementById('edit-svc-idx').value='-1'; document.getElementById('svc-save-btn').innerText='追加'; document.getElementById('svc-form-title').innerText='サービス登録・修正';
+    }
     function moveSvc(i, dir) { const t=i+dir; if(t<0||t>=dbS.length) return; const tmp=dbS[i]; dbS[i]=dbS[t]; dbS[t]=tmp; localStorage.setItem(K_S,JSON.stringify(dbS)); renderSvc(); }
-    function addSvc(){ const n=document.getElementById('new-svc').value, p=parseInt(document.getElementById('new-price').value)||0; if(!n) return; dbS.push({name:n,price:p}); localStorage.setItem(K_S,JSON.stringify(dbS)); document.getElementById('new-svc').value=''; document.getElementById('new-price').value=''; renderSvc(); }
-    function delSvc(i){ if(confirm("削除しますか？")){dbS.splice(i,1); localStorage.setItem(K_S,JSON.stringify(dbS)); renderSvc();}}
+    function delSvc(i){ if(confirm("削除しますか？")){dbS.splice(i,1); localStorage.setItem(K_S,JSON.stringify(dbS)); resetSvcForm(); renderSvc();}}
 
     function calcTotal() {
         let sub=0;
@@ -244,13 +280,23 @@
         document.getElementById('b-subtotal').value="¥ "+sub.toLocaleString(); document.getElementById('b-price').value=sub-d;
     }
 
+    // 重複チェック表示ロジック
+    function checkDupC(v){
+        const warn = document.getElementById('c-dup-warn');
+        const selfId = document.getElementById('c-id').value;
+        const exists = dbC.some(c => c.name === v && String(c.id) !== selfId);
+        warn.style.display = (v && exists) ? 'block' : 'none';
+    }
+
     function saveB(){
         const name=document.getElementById('b-name').value, date=document.getElementById('b-date').value; if(!name||!date) return alert("氏名と日付は必須です");
-        if(!dbC.some(c=>c.name===name)){ dbC.push({id:Date.now(), name, kana:'', color:'blue', tel:'', area:'', addr:'', memo:'', mail:''}); localStorage.setItem(K_C,JSON.stringify(dbC)); }
+        let targetC = dbC.find(c => c.name === name);
+        if(!targetC){ targetC = {id:Date.now(), name, kana:'', color:'blue', tel:'', area:'', addr:'', memo:'', mail:''}; dbC.push(targetC); localStorage.setItem(K_C,JSON.stringify(dbC)); }
         const id=document.getElementById('b-id').value, sel=[];
         document.querySelectorAll('input[name="svcs"]:checked').forEach(cb => sel.push({ name: cb.value, qty: parseInt(document.querySelector(`input[name="qty-${cb.value}"]`).value) }));
         const data={id:id?parseInt(id):Date.now(), name, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, discount:parseInt(document.getElementById('b-discount').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value, park:document.getElementById('b-park').value};
-        if(id) dbB[dbB.findIndex(x=>x.id==id)]=data; else dbB.push(data); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render();
+        if(id) dbB[dbB.findIndex(x=>x.id==id)]=data; else dbB.push(data);
+        localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render();
     }
 
     function editB(id,e){
@@ -284,79 +330,49 @@
     }
 
     function setD(d){ resetB(); document.getElementById('b-date').value=d; openForm(); }
-    function resetB(){ document.getElementById('b-id').value=''; document.querySelectorAll('#book-overlay input:not([type="checkbox"]), #book-overlay textarea').forEach(i=>i.value=''); document.querySelectorAll('input[name="svcs"]').forEach(cb=>cb.checked=false); document.getElementById('b-subtotal').value=''; document.getElementById('b-del-btn').style.display='none'; document.getElementById('b-park').value='有';}
+    function resetB(){ document.getElementById('b-id').value=''; document.querySelectorAll('#book-overlay input:not([type="checkbox"]), #book-overlay textarea').forEach(i=>i.value=''); document.querySelectorAll('input[name="svcs"]').forEach(cb=>cb.checked=false); document.getElementById('b-subtotal').value=''; document.getElementById('b-del-btn').style.display='none'; document.getElementById('b-park').value='有'; document.getElementById('b-dup-warn').style.display='none';}
 
     function setSortC(key) { if(sortC.key===key) sortC.asc=!sortC.asc; else {sortC.key=key; sortC.asc=true;} renderC(); }
-    
-    // 強化された検索機能
     function renderC(){
         const q=document.getElementById('c-q').value.toLowerCase(); 
-        let list=dbC.filter(c => {
-            return (c.name||'').toLowerCase().includes(q) || 
-                   (c.kana||'').toLowerCase().includes(q) || 
-                   (c.tel||'').includes(q) || 
-                   (c.area||'').toLowerCase().includes(q) || 
-                   (c.addr||'').toLowerCase().includes(q) || 
-                   (c.memo||'').toLowerCase().includes(q);
-        });
+        let list=dbC.filter(c => (c.name||'').toLowerCase().includes(q) || (c.kana||'').toLowerCase().includes(q) || (c.tel||'').includes(q) || (c.area||'').toLowerCase().includes(q) || (c.addr||'').toLowerCase().includes(q) || (c.memo||'').toLowerCase().includes(q));
         list.forEach(c => c._count = dbB.filter(b => b.name === c.name).length);
         list.sort((a,b) => {
             let vA = sortC.key==='count'?a._count: (a[sortC.key]||''), vB = sortC.key==='count'?b._count: (b[sortC.key]||'');
             return sortC.asc ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
         });
-        document.getElementById('c-list-body').innerHTML=list.map(c=>`
-            <tr>
-                <td><span class="dot-${c.color||'blue'}">●</span> <span class="link-text" onclick="viewCDetail(${c.id})">${c.name}</span><br><small>${c.kana||''}</small></td>
-                <td>${c._count}回</td>
-                <td>${c.area||''}</td>
-            </tr>`).join('');
+        document.getElementById('c-list-body').innerHTML=list.map(c=>`<tr><td><span class="dot-${c.color||'blue'}">●</span> <span class="link-text" onclick="viewCDetail(${c.id})">${c.name}</span><br><small>${c.kana||''}</small></td><td>${c._count}回</td><td>${c.area||''}</td></tr>`).join('');
     }
 
     function viewCDetail(id) {
-        document.getElementById('cust-list-screen').style.display='none';
-        document.getElementById('cust-detail-screen').style.display='block';
+        document.getElementById('cust-list-screen').style.display='none'; document.getElementById('cust-detail-screen').style.display='block';
         if(!id) { resetC(); document.getElementById('c-detail-title').innerText="新規顧客登録"; return; }
         const i=dbC.find(x=>x.id==id);
         document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; document.getElementById('c-kana').value=i.kana||''; document.getElementById('c-tel').value=i.tel||''; document.getElementById('c-mail').value=i.mail||''; document.getElementById('c-area').value=i.area||''; document.getElementById('c-addr').value=i.addr||''; document.getElementById('c-memo').value=i.memo||'';
         const dot=document.querySelector(`.color-dot[data-color="${i.color||'blue'}"]`); if(dot) sc(dot);
-        
         document.getElementById('mail-link').style.display = i.mail ? 'inline' : 'none';
         if(i.mail) document.getElementById('mail-link').onclick=()=>location.href=`mailto:${i.mail}`;
-        
         const hist = dbB.filter(b => b.name === i.name).sort((a,b)=>b.date.localeCompare(a.date));
-        document.getElementById('c-history-body').innerHTML = hist.map(h => `
-            <tr>
-                <td class="link-text" onclick="jumpToDate('${h.date}')">${h.date}</td>
-                <td>${h.service.map(s=>s.name).join(', ')}</td>
-                <td>¥${h.price.toLocaleString()}</td>
-            </tr>`).join('');
+        document.getElementById('c-history-body').innerHTML = hist.map(h => `<tr><td class="link-text" onclick="jumpToDate('${h.date}')">${h.date}</td><td>${h.service.map(s=>s.name).join(', ')}</td><td>¥${h.price.toLocaleString()}</td></tr>`).join('');
+        checkDupC(i.name);
     }
 
-    function jumpToDate(dateStr) {
-        const [y, m, d] = dateStr.split('-').map(Number);
-        document.getElementById('calY').value = y;
-        document.getElementById('calM').value = m - 1;
-        tab('book');
-        render();
-    }
-
+    function jumpToDate(dateStr) { const [y, m, d] = dateStr.split('-').map(Number); document.getElementById('calY').value = y; document.getElementById('calM').value = m - 1; tab('book'); render(); }
     function backToList(){ document.getElementById('cust-list-screen').style.display='block'; document.getElementById('cust-detail-screen').style.display='none'; }
     function saveC(){
         const id=document.getElementById('c-id').value, data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:document.getElementById('c-name').value, kana:document.getElementById('c-kana').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
         if(!data.name) return alert("お名前は必須です");
         if(id) dbC[dbC.findIndex(x=>x.id==id)]=data; else dbC.push(data); localStorage.setItem(K_C,JSON.stringify(dbC)); backToList(); renderC(); render();
     }
-    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen textarea').forEach(i=>i.value=''); document.getElementById('c-history-body').innerHTML=''; document.getElementById('mail-link').style.display='none';}
+    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen textarea').forEach(i=>i.value=''); document.getElementById('c-history-body').innerHTML=''; document.getElementById('mail-link').style.display='none'; document.getElementById('c-dup-warn').style.display='none';}
 
     function renderSale(){
         const y=document.getElementById('saleY').value, m=String(parseInt(document.getElementById('saleM').value)+1).padStart(2,'0'), target=`${y}-${m}`;
-        const filtered=dbB.filter(b=>b.date.startsWith(target));
-        const yearFiltered=dbB.filter(b=>b.date.startsWith(y));
+        const filtered=dbB.filter(b=>b.date.startsWith(target)), yearFiltered=dbB.filter(b=>b.date.startsWith(y));
         let total=0, yearTotal=0, areaMap={}, svcMap={};
         yearFiltered.forEach(b => yearTotal += b.price);
         document.getElementById('sale-body').innerHTML=filtered.sort((a,b)=>a.date.localeCompare(b.date)).map(b=>{
-            total+=b.price;
-            const c=dbC.find(x=>x.name===b.name); const area=c?c.area||'不明':'不明';
+            total+=b.price; const c=dbC.find(x=>x.name===b.name); const area=c?c.area||'不明':'不明';
             areaMap[area] = (areaMap[area]||0) + 1;
             b.service.forEach(s => svcMap[s.name] = (svcMap[s.name]||0) + s.qty);
             return `<tr><td>${b.date.split('-')[2]}日</td><td>${b.name}</td><td>${b.service.map(s=>s.name).join(',')}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
@@ -368,10 +384,18 @@
         document.getElementById('svc-stat-body').innerHTML = Object.entries(svcMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}回</td></tr>`).join('');
     }
 
-    function searchC(v){ const res=document.getElementById('b-res'); if(!v){res.style.display='none';return;} const ms=dbC.filter(c=>c.name.includes(v)||(c.kana||'').includes(v)||c.tel?.includes(v)); res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> <small>${c.kana||''}</small></div>`).join(''); res.style.display=ms.length?'block':'none'; }
-    function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; }
+    function searchC(v){ 
+        const res=document.getElementById('b-res');
+        const warn=document.getElementById('b-dup-warn');
+        if(!v){res.style.display='none'; warn.style.display='none'; return;} 
+        const ms=dbC.filter(c=>c.name.includes(v)||(c.kana||'').includes(v)||c.tel?.includes(v));
+        res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> <small>${c.kana||''}</small></div>`).join('');
+        res.style.display=ms.length?'block':'none';
+        warn.style.display = dbC.some(c => c.name === v) ? 'block' : 'none';
+    }
+    function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; document.getElementById('b-dup-warn').style.display='block'; }
     function moveMonth(n){ let m=parseInt(document.getElementById('calM').value)+n, y=parseInt(document.getElementById('calY').value); if(m>11){m=0;y++;}else if(m<0){m=11;y--;} document.getElementById('calY').value=y; document.getElementById('calM').value=m; render(); }
-    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v65.json`; a.click(); }
+    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v68.json`; a.click(); }
     function impD(f){ const r=new FileReader(); r.onload=(e)=>{ const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); }; r.readAsText(f.files[0]); }
     function delB(){ if(confirm("予約を削除しますか？")){ dbB=dbB.filter(x=>x.id!=document.getElementById('b-id').value); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
 
