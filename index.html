@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CLEAN-PRO v70.0</title>
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #ffffff; --border: #e2e8f0; --accent: #38bdf8; }
         .c-blue { border-left: 5px solid #2563eb !important; }
@@ -231,7 +232,9 @@
         const now = new Date();
         const yEl = document.getElementById('calY'), mEl = document.getElementById('calM');
         const syEl = document.getElementById('saleY'), smEl = document.getElementById('saleM');
-        for(let i=now.getFullYear()-2; i<=now.getFullYear()+3; i++) {
+        
+        // ★2020年から表示するように修正
+        for(let i=2020; i<=now.getFullYear()+3; i++) {
             yEl.innerHTML += `<option value="${i}">${i}年</option>`;
             syEl.innerHTML += `<option value="${i}">${i}年</option>`;
         }
@@ -258,7 +261,7 @@
     function closeForm(){ document.getElementById('book-overlay').classList.remove('active'); resetB(); }
     function sc(el){ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('c-color').value=el.dataset.color; }
 
-    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
+    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
 
     function renderSvc() {
         document.getElementById('svc-list').innerHTML = dbS.map((s,i)=>`
@@ -311,6 +314,20 @@
         warn.style.display = (v && exists) ? 'block' : 'none';
     }
 
+    function searchC(q){
+        const res=document.getElementById('b-res');
+        if(!q){ res.style.display='none'; return; }
+        const matched = dbC.filter(c=>c.name.includes(q)||c.kana.includes(q));
+        if(matched.length){
+            res.innerHTML = matched.map(c=>`<div onclick="selC('${c.name}')"><b>${c.name}</b> <small>(${c.kana})</small></div>`).join('');
+            res.style.display='block';
+        } else res.style.display='none';
+        
+        const exists = dbC.some(c => c.name === q);
+        document.getElementById('b-dup-warn').style.display = 'none';
+    }
+    function selC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; }
+
     function saveB(){
         const name=document.getElementById('b-name').value, date=document.getElementById('b-date').value; if(!name||!date) return alert("氏名と日付は必須です");
         let targetC = dbC.find(c => c.name === name);
@@ -346,6 +363,13 @@
         calcTotal(); openForm(); document.getElementById('b-del-btn').style.display='block';
     }
 
+    function moveMonth(n){
+        let y=parseInt(document.getElementById('calY').value), m=parseInt(document.getElementById('calM').value)+n;
+        const d=new Date(y,m,1);
+        document.getElementById('calY').value=d.getFullYear(); document.getElementById('calM').value=d.getMonth();
+        render();
+    }
+
     function render(){
         const y=parseInt(document.getElementById('calY').value), m=parseInt(document.getElementById('calM').value);
         if(isNaN(y) || isNaN(m)) return;
@@ -360,7 +384,6 @@
             const evs=dbB.filter(b=>b.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
             grid.innerHTML+=`<div class="cal-d" onclick="setD('${ds}')"><b class="${isToday?'today-mark':''}">${d}</b>` + evs.map(e=>{ 
                 const c=dbC.find(x=>x.name===e.name);
-                // カレンダー表示に支払い方法を追加
                 return `<div class="ev c-${c?c.color:'blue'}" onclick="editB(${e.id},event)">${e.time||''} ${e.name}<br><small style="opacity:0.8;">[${e.pay||'未入力'}]</small></div>`
             }).join('') + `</div>`;
         }
@@ -421,39 +444,42 @@
             total+=b.price; const c=dbC.find(x=>x.name===b.name); const area=c?c.area||'不明':'不明';
             areaMap[area] = (areaMap[area]||0) + 1;
             b.service.forEach(s => svcMap[s.name] = (svcMap[s.name]||0) + s.qty);
-            
-            // 支払い方法別の集計
             const payType = b.pay || "未入力";
             if(!payMap[payType]) payMap[payType] = { count: 0, amount: 0 };
             payMap[payType].count++;
             payMap[payType].amount += b.price;
-
             return `<tr><td>${b.date.split('-')[2]}日</td><td>${b.name}</td><td>${b.service.map(s=>s.name).join(',')}</td><td>¥${b.price.toLocaleString()}</td></tr>`;
         }).join('');
 
         document.getElementById('total-val').innerText=`¥${total.toLocaleString()}`;
         document.getElementById('year-total-val').innerText=`¥${yearTotal.toLocaleString()}`;
         document.getElementById('total-cnt').innerText=`${filtered.length}件`;
-        
-        // 各種集計表示
-        document.getElementById('pay-stat-body').innerHTML = Object.entries(payMap).map(([k,v])=>`<tr><td>${k}</td><td>${v.count}件</td><td>¥${v.amount.toLocaleString()}</td></tr>`).join('');
-        document.getElementById('area-stat-body').innerHTML = Object.entries(areaMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}件</td></tr>`).join('');
-        document.getElementById('svc-stat-body').innerHTML = Object.entries(svcMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}回</td></tr>`).join('');
+        document.getElementById('area-stat-body').innerHTML=Object.entries(areaMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}件</td></tr>`).join('');
+        document.getElementById('svc-stat-body').innerHTML=Object.entries(svcMap).map(([k,v])=>`<tr><td>${k}</td><td>${v}回</td></tr>`).join('');
+        document.getElementById('pay-stat-body').innerHTML=Object.entries(payMap).map(([k,v])=>`<tr><td>${k}</td><td>${v.count}件</td><td>¥${v.amount.toLocaleString()}</td></tr>`).join('');
     }
 
-    function searchC(v){ 
-        const res=document.getElementById('b-res');
-        const warn=document.getElementById('b-dup-warn');
-        if(!v){res.style.display='none'; warn.style.display='none'; return;} 
-        const ms=dbC.filter(c=>c.name.includes(v)||(c.kana||'').includes(v)||(c.tel&&c.tel.includes(v)));
-        res.innerHTML=ms.map(c=>`<div onclick="pickC('${c.name}')"><b>${c.name}</b> <small>${c.kana||''}</small></div>`).join('');
-        res.style.display=ms.length?'block':'none';
-        warn.style.display = dbC.some(c => c.name === v) ? 'block' : 'none';
+    function expD(){
+        const data = { dbB, dbC, dbS };
+        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `clean-pro-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
     }
-    function pickC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; document.getElementById('b-dup-warn').style.display='block'; }
-    function moveMonth(n){ let m=parseInt(document.getElementById('calM').value)+n, y=parseInt(document.getElementById('calY').value); if(m>11){m=0;y++;}else if(m<0){m=11;y--;} document.getElementById('calY').value=y; document.getElementById('calM').value=m; render(); }
-    function expD(){ const d={b:dbB,c:dbC,s:dbS}, blob=new Blob([JSON.stringify(d)],{type:'application/json'}), a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`CLEAN_PRO_v70.json`; a.click(); }
-    function impD(f){ const r=new FileReader(); r.onload=(e)=>{ try { const d=JSON.parse(e.target.result); localStorage.setItem(K_B,JSON.stringify(d.b)); localStorage.setItem(K_C,JSON.stringify(d.c)); localStorage.setItem(K_S,JSON.stringify(d.s)); location.reload(); } catch(err){alert("ファイル形式が正しくありません");} }; r.readAsText(f.files[0]); }
+    function impD(input){
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+                if(data.dbB && data.dbC) {
+                    dbB=data.dbB; dbC=data.dbC; if(data.dbS) dbS=data.dbS;
+                    localStorage.setItem(K_B,JSON.stringify(dbB)); localStorage.setItem(K_C,JSON.stringify(dbC)); localStorage.setItem(K_S,JSON.stringify(dbS));
+                    alert("復元完了しました！"); location.reload();
+                }
+            } catch(e) { alert("無効なファイルです"); }
+        };
+        reader.readAsText(input.files[0]);
+    }
 </script>
 </body>
 </html>
