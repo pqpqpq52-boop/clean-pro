@@ -337,7 +337,6 @@
         if (newName && newName !== oldName) {
             dbA[i] = newName;
             localStorage.setItem(K_A, JSON.stringify(dbA));
-            // 顧客データの地域名も一括更新
             dbC.forEach(c => { if(c.area === oldName) c.area = newName; });
             localStorage.setItem(K_C, JSON.stringify(dbC));
             renderAreaSelect();
@@ -380,8 +379,11 @@
     function closeForm(){ document.getElementById('book-overlay').classList.remove('active'); resetB(); }
     function sc(el){ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('c-color').value=el.dataset.color; }
 
+    /* 【修正済み】休み登録時に日付が消えないように変更 */
     function setHoliday() {
+        const currentDate = document.getElementById('b-date').value; // 保存
         resetB();
+        document.getElementById('b-date').value = currentDate; // 戻す
         document.getElementById('b-name').value = "【休み】";
         document.getElementById('b-detail-area').style.display = 'none';
         openForm();
@@ -444,14 +446,22 @@
     function selC(n){ document.getElementById('b-name').value=n; document.getElementById('b-res').style.display='none'; document.getElementById('b-detail-area').style.display = 'block'; }
 
     function saveB(){
-        const name=document.getElementById('b-name').value, date=document.getElementById('b-date').value; if(!name||!date) return alert("氏名と日付は必須です");
-        if(name !== "【休み】") {
-            let targetC = dbC.find(c => c.name === name);
-            if(!targetC){ targetC = {id:Date.now(), name, kana:'', color:'blue', tel:'', area:'', addr:'', memo:'', mail:''}; dbC.push(targetC); localStorage.setItem(K_C,JSON.stringify(dbC)); }
+        const nameInput = document.getElementById('b-name').value.trim();
+        const date = document.getElementById('b-date').value; 
+        if(!nameInput || !date) return alert("氏名と日付は必須です");
+
+        if(nameInput !== "【休み】") {
+            let targetC = dbC.find(c => c.name === nameInput);
+            if(!targetC){ 
+                targetC = {id:Date.now(), name:nameInput, kana:'', color:'blue', tel:'', area:'', addr:'', memo:'', mail:''}; 
+                dbC.push(targetC); 
+                localStorage.setItem(K_C,JSON.stringify(dbC)); 
+            }
         }
+        
         const id=document.getElementById('b-id').value, sel=[];
         document.querySelectorAll('input[name="svcs"]:checked').forEach(cb => sel.push({ name: cb.value, qty: parseInt(document.querySelector(`input[name="qty-${cb.value}"]`).value) }));
-        const data={id:id?parseInt(id):Date.now(), name, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, discount:parseInt(document.getElementById('b-discount').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value, park:document.getElementById('b-park').value};
+        const data={id:id?parseInt(id):Date.now(), name:nameInput, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, discount:parseInt(document.getElementById('b-discount').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value, park:document.getElementById('b-park').value};
         if(id) {
             const idx = dbB.findIndex(x=>x.id==id);
             if(idx !== -1) dbB[idx] = data;
@@ -513,7 +523,7 @@
         if(!id) { resetC(); document.getElementById('c-detail-title').innerText="新規顧客登録"; return; }
         const i=dbC.find(x=>x.id==id);
         document.getElementById('c-id').value=i.id; document.getElementById('c-name').value=i.name; document.getElementById('c-kana').value=i.kana||''; document.getElementById('c-tel').value=i.tel||''; 
-        document.getElementById('c-mail').value=i.mail||''; // 【復旧】
+        document.getElementById('c-mail').value=i.mail||'';
         document.getElementById('c-area').value=i.area||''; document.getElementById('c-addr').value=i.addr||''; document.getElementById('c-memo').value=i.memo||'';
         const dot=document.querySelector(`.color-dot[data-color="${i.color||'blue'}"]`); if(dot) sc(dot);
         const hist = dbB.filter(b => b.name === i.name).sort((a,b)=>b.date.localeCompare(a.date));
@@ -580,12 +590,28 @@
     }
     function jumpToDate(dateStr) { const [y, m, d] = dateStr.split('-').map(Number); document.getElementById('calY').value = y; document.getElementById('calM').value = m - 1; tab('book'); render(); }
     function backToList(){ document.getElementById('cust-list-screen').style.display='block'; document.getElementById('cust-detail-screen').style.display='none'; }
+
     function saveC(){
-        const id=document.getElementById('c-id').value, data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:document.getElementById('c-name').value, kana:document.getElementById('c-kana').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
-        if(!data.name) return alert("お名前は必須です");
+        const id=document.getElementById('c-id').value;
+        const newName=document.getElementById('c-name').value.trim();
+        if(!newName) return alert("お名前は必須です");
+
+        if(id) {
+            const oldData = dbC.find(x => x.id == id);
+            if(oldData && oldData.name !== newName) {
+                dbB.forEach(b => {
+                    if(b.name === oldData.name) b.name = newName;
+                });
+                localStorage.setItem(K_B, JSON.stringify(dbB));
+            }
+        }
+
+        const data={id:id?parseInt(id):Date.now(), color:document.getElementById('c-color').value, name:newName, kana:document.getElementById('c-kana').value, tel:document.getElementById('c-tel').value, mail:document.getElementById('c-mail').value, area:document.getElementById('c-area').value, addr:document.getElementById('c-addr').value, memo:document.getElementById('c-memo').value};
+        
         if(id) { const idx = dbC.findIndex(x=>x.id==id); if(idx !== -1) dbC[idx] = data; } else { dbC.push(data); }
         localStorage.setItem(K_C,JSON.stringify(dbC)); backToList(); renderC(); render();
     }
+
     function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen select, #cust-detail-screen textarea').forEach(i=>i.value=''); document.getElementById('c-history-body').innerHTML=''; document.getElementById('c-dup-warn').style.display='none';}
     function expD(){
         const data = { dbB, dbC, dbS, dbA };
@@ -609,7 +635,7 @@
         reader.readAsText(input.files[0]);
     }
     function delB(){ const id = document.getElementById('b-id').value; if(id && confirm("この予定を削除しますか？")){ dbB = dbB.filter(x => x.id != id); localStorage.setItem(K_B,JSON.stringify(dbB)); closeForm(); render(); } }
-    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
+    function openMap() { const addr = document.getElementById('c-addr').value; if(addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank'); else alert("住所を入力してください"); }
 </script>
 </body>
 </html>
