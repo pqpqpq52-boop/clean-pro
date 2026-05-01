@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>CLEAN-PRO v72.2</title>
+    <title>CLEAN-PRO v72.3</title>
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #f8fafc; --border: #cbd5e1; --accent: #38bdf8; --gray: #94a3b8; }
         
-        /* 要素の幅・高さの計算に余白や枠線を含める（はみ出し防止の要） */
         *, *::before, *::after { box-sizing: border-box; }
 
         .c-blue { border-left: 6px solid #2563eb !important; }
@@ -22,12 +21,12 @@
         
         .dot-blue { color: #2563eb; } .dot-green { color: #22c55e; } .dot-yellow { color: #eab308; } .dot-red { color: #ef4444; }
         
-        /* html, bodyで画面にピタッと固定する */
         html, body {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
-            height: 100dvh; /* iPadのバーを考慮した完璧な高さ */
-            overflow: hidden; /* 全体のスクロールを禁止し、中のページだけスクロールさせる */
+            height: 100dvh; 
+            max-width: 100vw;
+            overflow: hidden; 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Meiryo, sans-serif;
             background: var(--bg); display: flex; font-size: 16px;
         }
@@ -44,20 +43,25 @@
         nav .menu.active { opacity: 1; color: var(--accent); background: rgba(255,255,255,0.1); border-right: 5px solid var(--accent); }
         nav .icon { font-size: 32px; display: block; margin-bottom: 8px; }
         
-        /* min-width: 0 で横方向のはみ出しを強制カット */
-        main { flex: 1; height: 100%; min-width: 0; overflow: hidden; position: relative; background: #ffffff; border-top-left-radius: 20px; border-bottom-left-radius: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
+        /* 横幅が絶対に画面を超えないように calc で厳密に指定 */
+        main { flex: 1; height: 100%; width: calc(100% - 100px); max-width: calc(100% - 100px); overflow: hidden; position: relative; background: #ffffff; border-top-left-radius: 20px; border-bottom-left-radius: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
         .page { display: none; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
         .page.active { display: block; }
         .full-container { padding: 25px; width: 100%; min-height: 100%; display: flex; flex-direction: column; }
         
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; flex-wrap: wrap; gap: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--border); gap: 1px; flex: 1; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .cal-w { background: #f8fafc; padding: 15px; text-align: center; font-weight: bold; font-size: 15px; color: #475569; }
-        .cal-d { background: white; padding: 8px; min-height: 120px; position: relative; transition: background 0.2s; }
+        
+        /* 💡 最重要修正：minmax(0, 1fr) でカレンダーの枠が文字によって広がらないように強制ロック */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--border); gap: 1px; flex: 1; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        
+        .cal-w { background: #f8fafc; padding: 15px 5px; text-align: center; font-weight: bold; font-size: 14px; color: #475569; }
+        /* 日付マスも min-width: 0 をつけて押し出し防止 */
+        .cal-d { background: white; padding: 8px; min-height: 120px; position: relative; transition: background 0.2s; min-width: 0; overflow: hidden; }
         .cal-d:active { background: #f1f5f9; }
         .today-mark { display: inline-block; width: 30px; height: 30px; background: var(--p); color: white; border-radius: 50%; text-align: center; line-height: 30px; font-size: 16px; font-weight: bold; }
         
-        .ev { font-size: 13px; padding: 8px 10px; border-radius: 6px; margin-top: 5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f8fafc; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        /* 長い文字は「...」になるよう徹底 */
+        .ev { font-size: 13px; padding: 8px; border-radius: 6px; margin-top: 5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f8fafc; box-shadow: 0 1px 3px rgba(0,0,0,0.05); width: 100%; display: block; }
 
         .dup-warn { color: #ef4444; font-size: 14px; font-weight: bold; margin-top: 6px; display: none; }
         
@@ -78,7 +82,7 @@
         .btn-d { background: #ef4444; color: white; }
         .btn-mini { padding: 10px 16px; font-size: 15px; border-radius: 8px; }
 
-        .table-wrap { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: auto; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .table-wrap { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: auto; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); max-width: 100%; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { text-align: left; padding: 16px; background: #f8fafc; border-bottom: 2px solid var(--border); font-size: 14px; cursor: pointer; white-space: nowrap; color: #475569; }
         td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
@@ -320,7 +324,7 @@
         dbS = JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
         dbA = JSON.parse(localStorage.getItem(K_A))||["岡山市","倉敷市","玉野市","総社市"];
     } catch(e) {
-        alert("【警告】\niPadの「ファイル」アプリから直接開いている等の理由で、データ保存機能がブロックされています。\nこのままだとボタンが正常に反応しません。\n\nお手数ですが、Safariブラウザで開き直すか、サーバー上にアップロードしてご利用ください。");
+        alert("【警告】\niPadの「ファイル」アプリから直接開いている等の理由で、データ保存機能がブロックされています。\nお手数ですが、Safariブラウザで開き直すか、サーバー上にアップロードしてご利用ください。");
     }
     
     let sortC = { key: 'kana', asc: true };
@@ -690,7 +694,7 @@
         const data = { dbB, dbC, dbS, dbA };
         const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-        a.download = `clean-pro-v72.2-backup.json`;
+        a.download = `clean-pro-v72.3-backup.json`;
         a.click();
     }
     function impD(input){
