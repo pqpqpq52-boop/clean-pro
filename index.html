@@ -2,13 +2,17 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>CLEAN-PRO v72.0</title>
+    <title>CLEAN-PRO v72.2</title>
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
     <style>
         :root { --p: #2563eb; --s: #64748b; --bg: #f8fafc; --border: #cbd5e1; --accent: #38bdf8; --gray: #94a3b8; }
+        
+        /* 要素の幅・高さの計算に余白や枠線を含める（はみ出し防止の要） */
+        *, *::before, *::after { box-sizing: border-box; }
+
         .c-blue { border-left: 6px solid #2563eb !important; }
         .c-green { border-left: 6px solid #22c55e !important; }
         .c-yellow { border-left: 6px solid #eab308 !important; }
@@ -18,45 +22,56 @@
         
         .dot-blue { color: #2563eb; } .dot-green { color: #22c55e; } .dot-yellow { color: #eab308; } .dot-red { color: #ef4444; }
         
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Meiryo, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; font-size: 16px; }
+        /* html, bodyで画面にピタッと固定する */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            height: 100dvh; /* iPadのバーを考慮した完璧な高さ */
+            overflow: hidden; /* 全体のスクロールを禁止し、中のページだけスクロールさせる */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Meiryo, sans-serif;
+            background: var(--bg); display: flex; font-size: 16px;
+        }
         
-        /* サイドバーをiPad用に拡大 */
+        button, .menu, .cal-d, .color-dot, select, input, .link-text, .close-btn {
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .icon { pointer-events: none; }
+
         nav { width: 100px; background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 30px 0; gap: 20px; flex-shrink: 0; z-index: 3000; }
-        nav .menu { cursor: pointer; text-align: center; font-size: 14px; opacity: 0.6; width: 100%; padding: 18px 0; border: none; background: none; color: white; outline: none; font-weight: 600; }
+        nav .menu { text-align: center; font-size: 14px; opacity: 0.6; width: 100%; padding: 18px 0; border: none; background: none; color: white; outline: none; font-weight: 600; }
         nav .menu.active { opacity: 1; color: var(--accent); background: rgba(255,255,255,0.1); border-right: 5px solid var(--accent); }
         nav .icon { font-size: 32px; display: block; margin-bottom: 8px; }
         
-        main { flex: 1; height: 100vh; overflow: hidden; position: relative; background: #ffffff; border-top-left-radius: 20px; border-bottom-left-radius: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
-        .page { display: none; width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        /* min-width: 0 で横方向のはみ出しを強制カット */
+        main { flex: 1; height: 100%; min-width: 0; overflow: hidden; position: relative; background: #ffffff; border-top-left-radius: 20px; border-bottom-left-radius: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
+        .page { display: none; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
         .page.active { display: block; }
-        .full-container { padding: 25px; box-sizing: border-box; width: 100%; min-height: 100%; display: flex; flex-direction: column; }
+        .full-container { padding: 25px; width: 100%; min-height: 100%; display: flex; flex-direction: column; }
         
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; flex-wrap: wrap; gap: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--border); gap: 1px; flex: 1; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
         .cal-w { background: #f8fafc; padding: 15px; text-align: center; font-weight: bold; font-size: 15px; color: #475569; }
-        .cal-d { background: white; padding: 8px; cursor: pointer; min-height: 120px; position: relative; transition: background 0.2s; }
+        .cal-d { background: white; padding: 8px; min-height: 120px; position: relative; transition: background 0.2s; }
         .cal-d:active { background: #f1f5f9; }
         .today-mark { display: inline-block; width: 30px; height: 30px; background: var(--p); color: white; border-radius: 50%; text-align: center; line-height: 30px; font-size: 16px; font-weight: bold; }
         
-        /* カレンダー内の予定ラベルを大きく */
         .ev { font-size: 13px; padding: 8px 10px; border-radius: 6px; margin-top: 5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f8fafc; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
         .dup-warn { color: #ef4444; font-size: 14px; font-weight: bold; margin-top: 6px; display: none; }
         
-        /* フォームをiPadらしいポップアップ（モーダル）に変更 */
         .form-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; overflow-y: auto; padding: 40px 20px; -webkit-overflow-scrolling: touch; }
         .form-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
         .modal-content { background: white; width: 100%; max-width: 750px; border-radius: 20px; padding: 35px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); position: relative; margin: auto; }
         
         .f-item { margin-bottom: 20px; }
         label { display: block; font-size: 15px; font-weight: 700; color: #475569; margin-bottom: 8px; }
-        /* 入力エリアをiPadの指のサイズに合わせて拡大 */
-        input, select, textarea { width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 18px; box-sizing: border-box; background: #f8fafc; transition: border-color 0.2s; }
+        input, select, textarea { width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 18px; background: #f8fafc; transition: border-color 0.2s; }
         input:focus, select:focus, textarea:focus { border-color: var(--p); outline: none; background: white; }
         
         .svc-row { display: flex; align-items: center; gap: 15px; padding: 15px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; }
-        /* ボタンを大きく押しやすく */
-        .btn { padding: 18px 24px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.1s, opacity 0.2s; }
+        .btn { padding: 18px 24px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.1s, opacity 0.2s; }
         .btn:active { transform: scale(0.98); }
         .btn-p { background: var(--p); color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
         .btn-s { background: #f1f5f9; color: var(--s); border: 1px solid #cbd5e1; }
@@ -67,22 +82,21 @@
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { text-align: left; padding: 16px; background: #f8fafc; border-bottom: 2px solid var(--border); font-size: 14px; cursor: pointer; white-space: nowrap; color: #475569; }
         td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-        .link-text { color: var(--p); text-decoration: underline; cursor: pointer; font-weight: bold; }
+        .link-text { color: var(--p); text-decoration: underline; font-weight: bold; }
 
         .search-res { position: absolute; background: white; width: calc(100% - 4px); z-index: 1600; border: 2px solid var(--border); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-height: 250px; overflow-y: auto; display: none; margin-top: 5px; }
         .search-res div { padding: 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 16px; }
         .search-res div:active { background: #f8fafc; }
         
-        .color-dot { width: 32px; height: 32px; border-radius: 50%; display: inline-block; cursor: pointer; border: 4px solid transparent; vertical-align: middle; }
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; display: inline-block; border: 4px solid transparent; vertical-align: middle; }
         .color-dot.active { border-color: #334155; transform: scale(1.15); }
         .stat-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         
         .toggle-tab { display: flex; background: #e2e8f0; border-radius: 10px; padding: 6px; margin-bottom: 20px; width: fit-content; }
-        .toggle-btn { padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; background: none; font-weight: bold; font-size: 16px; color: #64748b; }
+        .toggle-btn { padding: 10px 25px; border: none; border-radius: 8px; background: none; font-weight: bold; font-size: 16px; color: #64748b; }
         .toggle-btn.active { background: white; color: var(--p); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         
-        /* 閉じるボタン */
-        .close-btn { width: 44px; height: 44px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #64748b; cursor: pointer; font-weight: bold; }
+        .close-btn { width: 44px; height: 44px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #64748b; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -298,9 +312,16 @@
 
 <script>
     const K_B='cp_b_v69', K_C='cp_c_v69', K_S='cp_s_v69', K_A='cp_a_v71';
-    let dbB=JSON.parse(localStorage.getItem(K_B))||[], dbC=JSON.parse(localStorage.getItem(K_C))||[];
-    let dbS=JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
-    let dbA=JSON.parse(localStorage.getItem(K_A))||["岡山市","倉敷市","玉野市","総社市"];
+    let dbB=[], dbC=[], dbS=[], dbA=[];
+    
+    try {
+        dbB = JSON.parse(localStorage.getItem(K_B))||[];
+        dbC = JSON.parse(localStorage.getItem(K_C))||[];
+        dbS = JSON.parse(localStorage.getItem(K_S))||[{name:"エアコン清掃",price:10000},{name:"空室清掃",price:25000}];
+        dbA = JSON.parse(localStorage.getItem(K_A))||["岡山市","倉敷市","玉野市","総社市"];
+    } catch(e) {
+        alert("【警告】\niPadの「ファイル」アプリから直接開いている等の理由で、データ保存機能がブロックされています。\nこのままだとボタンが正常に反応しません。\n\nお手数ですが、Safariブラウザで開き直すか、サーバー上にアップロードしてご利用ください。");
+    }
     
     let sortC = { key: 'kana', asc: true };
     let saleMode = 'M';
@@ -392,7 +413,9 @@
 
     function tab(p){
         closeForm(); backToList();
-        document.querySelectorAll('.page, .menu').forEach(x=>x.classList.remove('active'));
+        const menus = document.querySelectorAll('.page, .menu');
+        for(let i=0; i<menus.length; i++) menus[i].classList.remove('active');
+        
         document.getElementById('p-'+p).classList.add('active');
         document.getElementById('tab-'+p).classList.add('active');
         if(p==='sale') renderSale();
@@ -402,7 +425,13 @@
 
     function openForm(){ document.getElementById('book-overlay').classList.add('active'); }
     function closeForm(){ document.getElementById('book-overlay').classList.remove('active'); resetB(); }
-    function sc(el){ document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('c-color').value=el.dataset.color; }
+    
+    function sc(el){ 
+        const dots = document.querySelectorAll('.color-dot');
+        for(let i=0; i<dots.length; i++) dots[i].classList.remove('active');
+        el.classList.add('active'); 
+        document.getElementById('c-color').value=el.dataset.color; 
+    }
 
     function setHoliday() {
         const currentDate = document.getElementById('b-date').value; 
@@ -450,9 +479,10 @@
 
     function calcTotal() {
         let sub=0;
-        document.querySelectorAll('input[name="svcs"]:checked').forEach(cb => {
-            sub += (parseInt(cb.dataset.price)||0) * (parseInt(document.querySelector(`input[name="qty-${cb.value}"]`).value)||1);
-        });
+        const cbs = document.querySelectorAll('input[name="svcs"]:checked');
+        for(let i=0; i<cbs.length; i++) {
+            sub += (parseInt(cbs[i].dataset.price)||0) * (parseInt(document.querySelector(`input[name="qty-${cbs[i].value}"]`).value)||1);
+        }
         const d=parseInt(document.getElementById('b-discount').value)||0;
         document.getElementById('b-subtotal').value="¥ "+sub.toLocaleString(); document.getElementById('b-price').value=sub-d;
     }
@@ -484,7 +514,11 @@
         }
         
         const id=document.getElementById('b-id').value, sel=[];
-        document.querySelectorAll('input[name="svcs"]:checked').forEach(cb => sel.push({ name: cb.value, qty: parseInt(document.querySelector(`input[name="qty-${cb.value}"]`).value) }));
+        const cbs = document.querySelectorAll('input[name="svcs"]:checked');
+        for(let i=0; i<cbs.length; i++) {
+            sel.push({ name: cbs[i].value, qty: parseInt(document.querySelector(`input[name="qty-${cbs[i].value}"]`).value) });
+        }
+        
         const data={id:id?parseInt(id):Date.now(), name:nameInput, date, time:document.getElementById('b-time').value, service:sel, price:parseInt(document.getElementById('b-price').value)||0, discount:parseInt(document.getElementById('b-discount').value)||0, pay:document.getElementById('b-pay').value, note:document.getElementById('b-note').value, park:document.getElementById('b-park').value};
         if(id) {
             const idx = dbB.findIndex(x=>x.id==id);
@@ -529,7 +563,16 @@
     }
 
     function setD(d){ resetB(); document.getElementById('b-date').value=d; openForm(); }
-    function resetB(){ document.getElementById('b-id').value=''; document.querySelectorAll('#book-overlay input:not([type="checkbox"]), #book-overlay textarea').forEach(i=>i.value=''); document.querySelectorAll('input[name="svcs"]').forEach(cb=>cb.checked=false); document.getElementById('b-subtotal').value=''; document.getElementById('b-del-btn').style.display='none'; document.getElementById('b-park').value='有'; document.getElementById('b-detail-area').style.display='block';}
+    
+    function resetB(){ 
+        document.getElementById('b-id').value=''; 
+        const inps = document.querySelectorAll('#book-overlay input:not([type="checkbox"]), #book-overlay textarea');
+        for(let i=0; i<inps.length; i++) inps[i].value='';
+        const cbs = document.querySelectorAll('input[name="svcs"]');
+        for(let i=0; i<cbs.length; i++) cbs[i].checked=false;
+        
+        document.getElementById('b-subtotal').value=''; document.getElementById('b-del-btn').style.display='none'; document.getElementById('b-park').value='有'; document.getElementById('b-detail-area').style.display='block';
+    }
 
     function renderC(){
         const q=document.getElementById('c-q').value.toLowerCase(); 
@@ -636,12 +679,18 @@
         localStorage.setItem(K_C,JSON.stringify(dbC)); backToList(); renderC(); render();
     }
 
-    function resetC(){ document.getElementById('c-id').value=''; document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen select, #cust-detail-screen textarea').forEach(i=>i.value=''); document.getElementById('c-history-body').innerHTML=''; document.getElementById('c-dup-warn').style.display='none';}
+    function resetC(){ 
+        document.getElementById('c-id').value=''; 
+        const inps = document.querySelectorAll('#cust-detail-screen input, #cust-detail-screen select, #cust-detail-screen textarea');
+        for(let i=0; i<inps.length; i++) inps[i].value='';
+        document.getElementById('c-history-body').innerHTML=''; 
+        document.getElementById('c-dup-warn').style.display='none';
+    }
     function expD(){
         const data = { dbB, dbC, dbS, dbA };
         const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-        a.download = `clean-pro-v72.0-backup.json`;
+        a.download = `clean-pro-v72.2-backup.json`;
         a.click();
     }
     function impD(input){
